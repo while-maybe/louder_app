@@ -10,6 +10,7 @@ import (
 
 type MockDBMessageRepository struct {
 	// db *sql.DB
+
 	mockDB *domain.MsgWithTime
 }
 

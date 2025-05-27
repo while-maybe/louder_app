@@ -17,7 +17,7 @@ type MockDBRandRepository struct {
 func NewMockDBRandRepository() *MockDBRandRepository {
 	fakeMsgObj := newRandomNumber()
 
-	log.Println("Talking to mockDB message repo:")
+	log.Println("Talking to mockDB message repo:", fakeMsgObj)
 
 	return &MockDBRandRepository{
 		mockDB: &fakeMsgObj,
