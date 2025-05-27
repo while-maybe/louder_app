@@ -6,6 +6,6 @@ import "louder/internal/core/domain"
 
 // MessageRepository could be a port for database interactions
 type DataRepository interface {
-	GetDBMessage() domain.MsgWithTime
-	GetDBRandomNumber() domain.RandomNumber
+	GetMessageFromRepo() domain.MsgWithTime
+	GetRandomNumberFromRepo() domain.RandomNumber
 }

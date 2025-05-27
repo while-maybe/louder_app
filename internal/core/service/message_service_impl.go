@@ -21,10 +21,10 @@ func NewMessageService(db drivenports.DataRepository) drivingports.MessageServic
 
 func (m *messageServiceImpl) GetMessage() domain.MsgWithTime {
 	log.Println("Getting a message from db...")
-	return m.dataRepo.GetDBMessage()
+	return m.dataRepo.GetMessageFromRepo()
 }
 
 func (m *messageServiceImpl) GetRandomNumber() domain.RandomNumber {
 	log.Println("Getting a random number from db...")
-	return m.dataRepo.GetDBRandomNumber()
+	return m.dataRepo.GetRandomNumberFromRepo()
 }
