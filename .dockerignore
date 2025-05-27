@@ -1,0 +1,22 @@
+# Git
+.git
+.gitignore
+
+# Docker
+Dockerfile
+.dockerignore
+
+# Go build artifacts (if any are created locally)
+*.exe
+*.test
+vendor/
+
+# IDE and OS specific files
+.idea/
+*.iml
+.vscode/
+*.DS_Store
+
+# Local configuration or sensitive files
+config.local.yaml
+.env
