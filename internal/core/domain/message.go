@@ -2,11 +2,12 @@ package domain
 
 import (
 	"fmt"
+	"math/rand"
 	"time"
 )
 
 type Message string
-type Number uint
+type RandomNumber uint
 
 type MsgWithTime struct {
 	CurrentLocalTime time.Time
@@ -25,4 +26,8 @@ func NewMsgWithTime(msg fmt.Stringer) *MsgWithTime {
 		CurrentLocalTime: time.Now(),
 		Message:          msgContents,
 	}
+}
+
+func NewRandomNumber() RandomNumber {
+	return RandomNumber(rand.Uint32())
 }
