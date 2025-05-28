@@ -5,9 +5,10 @@ import (
 )
 
 type Message string
+
 type RandomNumber uint
 
 type MsgWithTime struct {
-	CurrentLocalTime time.Time
-	Message          string
+	Timestamp time.Time
+	Content   string
 }
