@@ -26,6 +26,16 @@ func NewMessageHandler(service drivingports.MessageService) *MessageHandler {
 	return &MessageHandler{MessageService: service}
 }
 
+// RandomNumber Handlers
+
+type RandomNumberHandler struct {
+	RandomNumberService drivingports.RandomNumberService // inject core service
+}
+
+func NewRandomNumberHandler(service drivingports.RandomNumberService) *RandomNumberHandler {
+	return &RandomNumberHandler{RandomNumberService: service}
+}
+
 // HandleGetMessage is an http.HandlerFunc for the /message route
 func (mh *MessageHandler) HandleGetMessage(w http.ResponseWriter, r *http.Request) {
 	log.Println("stdlib API adapter: Got GET request for /message")
@@ -41,10 +51,10 @@ func (mh *MessageHandler) HandleGetMessage(w http.ResponseWriter, r *http.Reques
 }
 
 // HandleGetRandomNumber is an http.HandlerFunc for the /random route
-func (mh *MessageHandler) HandleGetRandomNumber(w http.ResponseWriter, r *http.Request) {
+func (mh *RandomNumberHandler) HandleGetRandomNumber(w http.ResponseWriter, r *http.Request) {
 	log.Println("stdlib API adapter: Got GET request for /random")
 
-	randomNumberData := mh.MessageService.GetRandomNumber()
+	randomNumberData := mh.RandomNumberService.GetRandomNumber()
 	response := RandomNumberResponse{RandomNumber: randomNumberData}
 
 	w.Header().Set("Content-Type", "application/json")
