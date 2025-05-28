@@ -4,8 +4,7 @@ package drivenports
 
 import "louder/internal/core/domain"
 
-// MessageRepository could be a port for database interactions
-type DataRepository interface {
+// MessageWithTimeRepository could be a port for database interactions
+type MessageWithTimeRepository interface {
 	GetMessageFromRepo() domain.MsgWithTime
-	GetRandomNumberFromRepo() domain.RandomNumber
 }
