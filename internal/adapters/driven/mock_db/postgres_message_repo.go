@@ -28,10 +28,10 @@ func NewMockDBMessageRepository(startMessage string) *MockDBMessageRepository {
 }
 
 func (r *MockDBMessageRepository) GetMessageFromRepo() domain.MsgWithTime {
-	output := fmt.Sprintf("[%s] -> %s", r.name, r.mockDB.Message)
+	output := fmt.Sprintf("[%s] -> %s", r.name, r.mockDB.Content)
 	return domain.MsgWithTime{
-		Message:          output,
-		CurrentLocalTime: time.Now(),
+		Content:   output,
+		Timestamp: time.Now(),
 	}
 }
 
@@ -43,7 +43,7 @@ func newMsgWithTime(msg string) *domain.MsgWithTime {
 		msgContents = msg
 	}
 	return &domain.MsgWithTime{
-		CurrentLocalTime: time.Now(),
-		Message:          msgContents,
+		Timestamp: time.Now(),
+		Content:   msgContents,
 	}
 }
