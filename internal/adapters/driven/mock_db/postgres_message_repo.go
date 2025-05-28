@@ -1,8 +1,9 @@
 // Concrete implementations of the ItemRepository (driven port). Example: postgres_item_repo.go
 
-package mockdb
+package mockdbadapter
 
 import (
+	"fmt"
 	"log"
 	"louder/internal/core/domain"
 	"time"
@@ -11,16 +12,26 @@ import (
 type MockDBMessageRepository struct {
 	// db *sql.DB
 
+	name   string
 	mockDB *domain.MsgWithTime
 }
 
-func NewMockDBMessageRepository(dataSourceName string) *MockDBMessageRepository {
-	fakeMsgObj := newMsgWithTime(dataSourceName)
+func NewMockDBMessageRepository(startMessage string) *MockDBMessageRepository {
+	fakeMsgObj := newMsgWithTime(startMessage)
 
-	log.Println("Talking to mockDB message repo:", dataSourceName)
+	log.Println("Talking to mockDB message repo:", startMessage)
 
 	return &MockDBMessageRepository{
 		mockDB: fakeMsgObj,
+		name:   "MockDBMessageRepository",
+	}
+}
+
+func (r *MockDBMessageRepository) GetMessageFromRepo() domain.MsgWithTime {
+	output := fmt.Sprintf("[%s] -> %s", r.name, r.mockDB.Message)
+	return domain.MsgWithTime{
+		Message:          output,
+		CurrentLocalTime: time.Now(),
 	}
 }
 
@@ -31,13 +42,8 @@ func newMsgWithTime(msg string) *domain.MsgWithTime {
 	} else {
 		msgContents = msg
 	}
-
 	return &domain.MsgWithTime{
 		CurrentLocalTime: time.Now(),
 		Message:          msgContents,
 	}
 }
-
-// func newRandomNumber() RandomNumber {
-// 	return RandomNumber(rand.Uint32())
-// }

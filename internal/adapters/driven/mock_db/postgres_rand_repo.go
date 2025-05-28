@@ -1,6 +1,6 @@
 // Concrete implementations of the ItemRepository (driven port). Example: postgres_item_repo.go
 
-package mockdb
+package mockdbadapter
 
 import (
 	"log"
@@ -11,17 +11,25 @@ import (
 type MockDBRandRepository struct {
 	// db *sql.DB
 
+	name   string
 	mockDB *domain.RandomNumber
 }
 
-func NewMockDBRandRepository() *MockDBRandRepository {
-	fakeMsgObj := newRandomNumber()
+func NewMockDBRandRepository(startMsg string) *MockDBRandRepository {
+	// this should be a db
 
-	log.Println("Talking to mockDB message repo:", fakeMsgObj)
+	fakeRandObj := newRandomNumber()
+
+	log.Println("Talking to mockDB random number repo:", startMsg)
 
 	return &MockDBRandRepository{
-		mockDB: &fakeMsgObj,
+		name:   "MockDBRandRepository",
+		mockDB: &fakeRandObj,
 	}
+}
+
+func (r *MockDBRandRepository) GetRandomNumberFromRepo() domain.RandomNumber {
+	return newRandomNumber()
 }
 
 func newRandomNumber() domain.RandomNumber {
