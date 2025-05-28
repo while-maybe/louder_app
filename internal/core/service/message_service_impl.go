@@ -9,22 +9,17 @@ import (
 )
 
 type messageServiceImpl struct {
-	dataRepo drivenports.DataRepository // Injected dependency
+	messageRepo drivenports.MessageWithTimeRepository // Injected dependency
 }
 
 // NewMessageService is the constructor for messageServiceImpl
-func NewMessageService(db drivenports.DataRepository) drivingports.MessageService { // returns the driving port interface
+func NewMessageService(db drivenports.MessageWithTimeRepository) drivingports.MessageService { // returns the driving port interface
 	return &messageServiceImpl{
-		dataRepo: db,
+		messageRepo: db,
 	}
 }
 
 func (m *messageServiceImpl) GetMessage() domain.MsgWithTime {
 	log.Println("Getting a message from db...")
-	return m.dataRepo.GetMessageFromRepo()
-}
-
-func (m *messageServiceImpl) GetRandomNumber() domain.RandomNumber {
-	log.Println("Getting a random number from db...")
-	return m.dataRepo.GetRandomNumberFromRepo()
+	return m.messageRepo.GetMessageFromRepo()
 }
