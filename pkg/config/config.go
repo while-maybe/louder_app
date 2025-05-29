@@ -15,9 +15,9 @@ type AppConfig struct {
 
 // LoadConfig attempt to load .env file. In production, variables are usually set directly.
 func LoadConfig() *AppConfig {
-	err := godotenv.Load() // Tries to load .env from the current directory or parent dirs
+	err := godotenv.Load() // Tries to load .env from the current directory or parent dirs - By default, godotenv.Load() WILL NOT OVERRIDE existing environment variables
 	if err != nil {
-		log.Println("No .env file found or error loading it, relying on environment variables")
+		log.Println("no .env file found or error loading it, trying env vars")
 	}
 
 	return &AppConfig{
@@ -30,5 +30,6 @@ func getEnv(key, fallback string) string {
 	if value, exists := os.LookupEnv(key); exists {
 		return value
 	}
+
 	return fallback
 }

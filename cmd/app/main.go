@@ -12,7 +12,7 @@ func main() {
 
 	cfg := config.LoadConfig()
 
-	log.Print("LOUDER: ")
+	log.Println("LOUDER starting")
 
 	// serverAddr := os.Getenv("SERVER_ADDR")
 
