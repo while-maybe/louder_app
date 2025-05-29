@@ -6,7 +6,3 @@ import "louder/internal/core/domain"
 type MessageService interface {
 	GetMessage() domain.MsgWithTime
 }
-
-type RandomNumberService interface {
-	GetRandomNumber() domain.RandomNumber
-}
