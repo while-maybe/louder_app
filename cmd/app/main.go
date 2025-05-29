@@ -5,13 +5,16 @@ import (
 	dbdriven "louder/internal/adapters/driven/mock_db"
 	apidriving "louder/internal/adapters/driving/api_provider/stdlib"
 	coreservice "louder/internal/core/service"
-	"os"
+	"louder/pkg/config"
 )
 
 func main() {
+
+	cfg := config.LoadConfig()
+
 	log.Print("LOUDER: ")
 
-	serverAddr := os.Getenv("SERVER_ADDR")
+	// serverAddr := os.Getenv("SERVER_ADDR")
 
 	// instantiate driven adapters
 	dataRepo := dbdriven.NewMockDBMessageRepository("Message With Time")
@@ -29,7 +32,7 @@ func main() {
 	router := apidriving.NewRouter(messageHandler, randomNumberHandler)
 
 	// start the server
-	log.Printf("Starting server on port %s\n", serverAddr)
-	apidriving.StartServer(router, serverAddr)
+	log.Printf("Starting server on port %s\n", cfg.ServerPort)
+	apidriving.StartServer(router, cfg.ServerPort)
 	log.Println("Shutting server down")
 }
