@@ -1,6 +1,8 @@
 package domain
 
 import (
+	"fmt"
+	"math/rand"
 	"time"
 
 	"github.com/gofrs/uuid/v5"
@@ -48,21 +50,56 @@ func (pid PersonID) isNil() bool {
 	return uuid.UUID(pid).IsNil()
 }
 
-// NewPerson factory function
-func NewPerson(firstName, lastName, email string, dob time.Time /* ... */) (*Person, error) {
-	personID, err := NewPersonID()
-	if err != nil {
-		return nil, err // Propagate error from ID generation
+func (pid *PersonID) Scan(value any) error {
+	if value == nil {
+		*pid = PersonID(uuid.Nil)
+		return nil
+	}
+	var u uuid.UUID
+	switch v := value.(type) {
+	case string:
+		var err error
+		u, err = uuid.FromString(v)
+		if err != nil {
+			return fmt.Errorf("Person ID Scan: failed to parse UUID from string %s: %w", v, err)
+		}
+	case []byte:
+		var err error
+		u, err = uuid.FromBytes(v)
+		if err != nil {
+			return fmt.Errorf("PersonID Scan: failed to parse UUID from bytes %s: %w", string(v), err)
+		}
+	default:
+		return fmt.Errorf("PersonID Scan: unsupported type %T for PersonID", value)
 	}
 
-	// ... (rest of your validation and initialization)
+	*pid = PersonID(u)
+	return nil
+}
+
+// NewRandomDOB return a moment in time in the past maxAge
+func NewRandomDOB() time.Time {
+	maxAge := 100
+	maxApproxDays := int(float64(maxAge) * 365.2425) // acceptable precision
+	randDays := rand.Intn(maxApproxDays) + 1
+	randomTimeOfDay := time.Duration(rand.Intn(24*3600)) * time.Second
+	// .AddDate on its own, returns a time.Time with 00h00m00s so we add a random time of day
+	return time.Now().UTC().AddDate(0, 0, -randDays).Add(randomTimeOfDay)
+}
+
+// NewPerson factory function
+func NewPerson(firstName, lastName, email string, dob time.Time) (*Person, error) {
+	personID, err := NewPersonID()
+	if err != nil {
+		return nil, err
+	}
+
 	return &Person{
 		id:        personID,
 		firstName: firstName,
 		lastName:  lastName,
 		email:     email,
 		dob:       dob,
-		// ...
 	}, nil
 }
 
