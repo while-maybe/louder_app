@@ -11,11 +11,13 @@ import (
 type PersonID uuid.UUID
 
 type Person struct {
-	id               PersonID
-	firstName        string
-	lastName         string
-	email            string
-	dob              time.Time
+	id        PersonID
+	firstName string
+	lastName  string
+	email     string
+	dob       time.Time
+
+	// TODO - implement later
 	pets             []Pet
 	birthCountry     Country
 	residentCountry  Country
@@ -103,7 +105,34 @@ func NewPerson(firstName, lastName, email string, dob time.Time) (*Person, error
 	}, nil
 }
 
+// HydratePerson accepts data from repository and creates a new Person object from it
+func HydratePerson(id PersonID, firstName, lastName, email string, dob time.Time) *Person {
+	return &Person{
+		id:        id,
+		firstName: firstName,
+		lastName:  lastName,
+		email:     email,
+		dob:       dob,
+	}
+}
+
 // ID returns the PersonID object of a Person entity
 func (p *Person) ID() PersonID {
 	return p.id
+}
+
+func (p *Person) FirstName() string {
+	return p.firstName
+}
+
+func (p *Person) LastName() string {
+	return p.lastName
+}
+
+func (p *Person) Email() string {
+	return p.email
+}
+
+func (p *Person) DOB() time.Time {
+	return p.dob
 }
