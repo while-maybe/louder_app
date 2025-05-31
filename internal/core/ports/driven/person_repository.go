@@ -7,8 +7,8 @@ import (
 
 type PersonRepository interface {
 	GetAllPersonsFromRepo(ctx context.Context) ([]domain.Person, error)
-	// GetPersonFromRepo(ctx context.Context, personId string) (domain.Person, error)
-	AddPersonToRepo(ctx context.Context, person domain.Person) (domain.Person, error)
+	GetByID(ctx context.Context, personId string) (*domain.Person, error)
+	Save(ctx context.Context, person *domain.Person) (*domain.Person, error)
 	// DelPersonFromRepo(ctx context.Context, personId string) error
 	// GetByNameFromRepo(ctx context.Context, name string) ([]domain.Person, error)
 	// GetByAgeFromRepo(ctx context.Context, min, max int) ([]domain.Person, error)
