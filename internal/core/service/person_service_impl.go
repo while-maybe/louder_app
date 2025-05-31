@@ -36,7 +36,7 @@ func NewPersonService(db drivenports.PersonRepository) *personServiceImpl {
 func (ps *personServiceImpl) GetAllPersons(ctx context.Context) ([]domain.Person, error) {
 	log.Println("Getting all persons from db...")
 
-	persons, err := ps.personRepo.GetAllPersonsFromRepo(ctx)
+	persons, err := ps.personRepo.GetAll(ctx)
 	if err != nil {
 		return nil, err
 	}

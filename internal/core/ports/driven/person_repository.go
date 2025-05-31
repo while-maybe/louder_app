@@ -6,7 +6,7 @@ import (
 )
 
 type PersonRepository interface {
-	GetAllPersonsFromRepo(ctx context.Context) ([]domain.Person, error)
+	GetAll(ctx context.Context) ([]domain.Person, error)
 	GetByID(ctx context.Context, personId string) (*domain.Person, error)
 	Save(ctx context.Context, person *domain.Person) (*domain.Person, error)
 	// DelPersonFromRepo(ctx context.Context, personId string) error

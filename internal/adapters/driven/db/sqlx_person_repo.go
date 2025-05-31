@@ -21,6 +21,7 @@ const (
 	ErrConvertPerson   = Error("error cannot convert SQLx data to a person")
 	ErrDBQueryFailed   = Error("error query has failed")
 	ErrInvalidID       = Error("error invalid person ID format")
+	ErrNilDomainPerson = Error("error conversion returned nil domain person without error")
 	// ErrConvertNilPerson = Error("error convert nil person to DB model")
 	// ErrSaveNoRowsAffected = Error("error SQLx can't get rows affected")
 )
@@ -98,10 +99,9 @@ func (spr *SQLxPersonRepo) GetByID(ctx context.Context, personId string) (*domai
 	}
 
 	query := `
-	SELECT id, first_name, last_name, email, dob
-	FROM person
-	WHERE id = ?;
-	`
+		SELECT id, first_name, last_name, email, dob
+		FROM person
+		WHERE id = ?;`
 
 	var sqlxModel SQLxModelPerson
 
@@ -122,6 +122,32 @@ func (spr *SQLxPersonRepo) GetByID(ctx context.Context, personId string) (*domai
 	return retrievedPerson, nil
 }
 
-func (spr *SQLxPersonRepo) GetAllPersonsFromRepo(ctx context.Context) ([]domain.Person, error) {
-	return []domain.Person{}, nil
+func (spr *SQLxPersonRepo) GetAll(ctx context.Context) ([]domain.Person, error) {
+	query := `
+		SELECT id, first_name, last_name, email, dob
+		FROM person;`
+
+	var dbModels []SQLxModelPerson
+
+	err := spr.db.SelectContext(ctx, &dbModels, query)
+	if err != nil {
+		return nil, fmt.Errorf("GetAllPersons: %w: %w", ErrDBQueryFailed, err)
+	}
+
+	allPersons := make([]domain.Person, 0, len(dbModels))
+
+	for i := range dbModels {
+		domainPerson, err := toDomainPerson(&dbModels[i])
+
+		switch {
+		case err != nil:
+			log.Printf("GetAllPersons: %v (ID: %s): %v. Skipping.", ErrConvertPerson, dbModels[i].ID.String(), err)
+		case domainPerson == nil:
+			log.Printf("GetAllPersons: %v (ID: %s). Skipping.", ErrNilDomainPerson, dbModels[i].ID.String())
+		default:
+			allPersons = append(allPersons, *domainPerson)
+		}
+	}
+
+	return allPersons, nil
 }
