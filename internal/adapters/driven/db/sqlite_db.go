@@ -4,22 +4,17 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	dbcommon "louder/internal/adapters/driven/db/db_common"
 	"os"
 	"path/filepath"
 )
 
-type Error string
-
-func (e Error) Error() string {
-	return string(e)
-}
-
 // Sentinel errors for unit testing later
 const (
-	ErrDBFolder = Error("failed to create DB folder")
-	ErrDBOpen   = Error("failed to open sqlite3 DB")
-	ErrDBPing   = Error("failed to ping sqlite3 DB")
-	ErrSchema   = Error("failed to create persons schema")
+	ErrDBFolder = dbcommon.Error("failed to create DB folder")
+	ErrDBOpen   = dbcommon.Error("failed to open sqlite3 DB")
+	ErrDBPing   = dbcommon.Error("failed to ping sqlite3 DB")
+	ErrSchema   = dbcommon.Error("failed to create persons schema")
 )
 
 func Init(dbFilePath string) (*sql.DB, error) {
