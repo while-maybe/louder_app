@@ -1,4 +1,4 @@
-package sqlitedbadapter
+package sqlxadapter
 
 import (
 	"context"
@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	dbcommon "louder/internal/adapters/driven/db/db_common"
 	"louder/internal/core/domain"
 	drivenports "louder/internal/core/ports/driven"
 
@@ -13,16 +14,8 @@ import (
 )
 
 const (
-	ErrSaveNilPerson   = Error("error cannot save nil person to DB model")
-	ErrSqlxSavePerson  = Error("error SQLx save person")
-	ErrSavedButNotInDB = Error("error SQLx person saved but can't find in DB")
-	ErrNotFoundInDB    = Error("error cannot find this ID in DB")
-	ErrEmptyID         = Error("error given ID is empty")
-	ErrConvertPerson   = Error("error cannot convert SQLx data to a person")
-	ErrDBQueryFailed   = Error("error query has failed")
-	ErrInvalidID       = Error("error invalid person ID format")
-	ErrNilDomainPerson = Error("error conversion returned nil domain person without error")
-	// ErrConvertNilPerson = Error("error convert nil person to DB model")
+	ErrSqlxSavePerson = dbcommon.Error("error SQLx save person")
+
 	// ErrSaveNoRowsAffected = Error("error SQLx can't get rows affected")
 )
 
@@ -39,18 +32,14 @@ func NewSQLxPersonRepo(sqldb *sql.DB) (*SQLxPersonRepo, error) {
 	return &SQLxPersonRepo{db: db}, nil
 }
 
-func (spr *SQLxPersonRepo) Save(ctx context.Context, person *domain.Person) (*domain.Person, error) {
-	if person == nil {
-		return nil, ErrSaveNilPerson
-	}
+func (spr *SQLxPersonRepo) Save(ctx context.Context, person *domain.Person) error {
 
 	// convert from domain.Person to SQLxPersonModel first
 	sqlxModel := toSQLxModelPerson(person)
 
-	// yeah... on 2nd look looks redundant
-	// if sqlxModel == nil {
-	// 	return nil, ErrConvertNilPerson
-	// }
+	if sqlxModel == nil {
+		return dbcommon.ErrConvertNilPerson
+	}
 
 	query := `
 		INSERT INTO person (id, first_name, last_name, email, dob)
@@ -63,11 +52,10 @@ func (spr *SQLxPersonRepo) Save(ctx context.Context, person *domain.Person) (*do
 
 	result, err := spr.db.NamedExecContext(ctx, query, sqlxModel)
 	if err != nil {
-		return nil, fmt.Errorf("%w (ID:%s): %w", ErrSqlxSavePerson, person.ID().String(), err)
+		return fmt.Errorf("%w (ID:%s): %w", ErrSqlxSavePerson, person.ID().String(), err)
 	}
 
 	rowsAffected, err := result.RowsAffected()
-	var retrievedPerson *domain.Person
 
 	switch {
 	case err != nil:
@@ -75,27 +63,26 @@ func (spr *SQLxPersonRepo) Save(ctx context.Context, person *domain.Person) (*do
 
 	case rowsAffected == 0:
 		log.Printf("SQLx: Info - 0 rows affected for ID: %s. Identical to record?\n", person.ID().String())
-		retrievedPerson, err = spr.GetByID(ctx, person.ID().String())
 
 	default:
 		log.Printf("SQLx: Successfully saved/updated person ID %s. Fetching current state.", person.ID().String())
-		retrievedPerson, err = spr.GetByID(ctx, person.ID().String())
+		_, err = spr.GetByID(ctx, person.ID().String())
 		if err != nil {
-			return nil, fmt.Errorf("%w, ID: %s, %w", ErrSavedButNotInDB, person.ID().String(), err)
+			return fmt.Errorf("%w, ID: %s, %w", dbcommon.ErrSavedButNotInDB, person.ID().String(), err)
 		}
 	}
-	return retrievedPerson, nil
+	return nil
 }
 
 func (spr *SQLxPersonRepo) GetByID(ctx context.Context, personId string) (*domain.Person, error) {
 	if personId == "" {
-		return nil, ErrEmptyID
+		return nil, dbcommon.ErrEmptyID
 	}
 
 	// validate format
 	_, err := domain.PersonIDFromString(personId)
 	if err != nil {
-		return nil, fmt.Errorf("%w ID: %s, %w", ErrInvalidID, personId, err)
+		return nil, fmt.Errorf("%w ID: %s, %w", dbcommon.ErrInvalidID, personId, err)
 	}
 
 	query := `
@@ -108,15 +95,15 @@ func (spr *SQLxPersonRepo) GetByID(ctx context.Context, personId string) (*domai
 	err = spr.db.GetContext(ctx, &sqlxModel, query, personId)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, fmt.Errorf("%w ID: %s", ErrNotFoundInDB, personId)
+			return nil, fmt.Errorf("%w ID: %s", dbcommon.ErrNotFoundInDB, personId)
 		}
-		return nil, fmt.Errorf("%w ID: %s, %w", ErrDBQueryFailed, personId, err)
+		return nil, fmt.Errorf("%w ID: %s, %w", dbcommon.ErrDBQueryFailed, personId, err)
 	}
 
 	// convert from SQLxPersonModel to domain.Person to
-	retrievedPerson, err := toDomainPerson(&sqlxModel)
+	retrievedPerson, err := sqlxModel.toDomainPerson()
 	if err != nil {
-		return nil, fmt.Errorf("%w, ID: %s, %w", ErrConvertPerson, personId, err)
+		return nil, fmt.Errorf("%w, ID: %s, %w", dbcommon.ErrConvertPerson, personId, err)
 	}
 
 	return retrievedPerson, nil
@@ -131,19 +118,19 @@ func (spr *SQLxPersonRepo) GetAll(ctx context.Context) ([]domain.Person, error) 
 
 	err := spr.db.SelectContext(ctx, &dbModels, query)
 	if err != nil {
-		return nil, fmt.Errorf("GetAllPersons: %w: %w", ErrDBQueryFailed, err)
+		return nil, fmt.Errorf("GetAllPersons: %w: %w", dbcommon.ErrDBQueryFailed, err)
 	}
 
 	allPersons := make([]domain.Person, 0, len(dbModels))
 
 	for i := range dbModels {
-		domainPerson, err := toDomainPerson(&dbModels[i])
+		domainPerson, err := dbModels[i].toDomainPerson()
 
 		switch {
 		case err != nil:
-			log.Printf("GetAllPersons: %v (ID: %s): %v. Skipping.", ErrConvertPerson, dbModels[i].ID.String(), err)
+			log.Printf("GetAllPersons: %v (ID: %s): %v. Skipping.", dbcommon.ErrConvertPerson, dbModels[i].ID.String(), err)
 		case domainPerson == nil:
-			log.Printf("GetAllPersons: %v (ID: %s). Skipping.", ErrNilDomainPerson, dbModels[i].ID.String())
+			log.Printf("GetAllPersons: %v (ID: %s). Skipping.", dbcommon.ErrNilDomainPerson, dbModels[i].ID.String())
 		default:
 			allPersons = append(allPersons, *domainPerson)
 		}

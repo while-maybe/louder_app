@@ -1,14 +1,14 @@
-package sqlitedbadapter
+package sqlxadapter
 
 import (
 	"fmt"
+	dbcommon "louder/internal/adapters/driven/db/db_common"
 	"louder/internal/core/domain"
 	"time"
 )
 
 const (
-	ErrConvertIDfromDB = Error("error converting person ID from DB")
-	ErrHydrateWithNil  = Error("error attempted to hydrate person without data")
+	ErrConvertIDfromDB = dbcommon.Error("error converting person ID from DB")
 )
 
 // SQLxPersonModel is the data structure used for interacting with the 'person' table using SQLx
@@ -36,18 +36,11 @@ func toSQLxModelPerson(p *domain.Person) *SQLxModelPerson {
 	}
 }
 
-func toDomainPerson(smp *SQLxModelPerson) (*domain.Person, error) {
-	if smp == nil {
-		return nil, fmt.Errorf("%w", ErrHydrateWithNil)
+func (m *SQLxModelPerson) toDomainPerson() (*domain.Person, error) {
+	if m == nil {
+		return nil, fmt.Errorf("%w", dbcommon.ErrHydrateWithNil)
 	}
 
-	// this is actually reduntant at this stage as smp.ID is already the correct type?
-
-	// personID, err := domain.PersonIDFromString(smp.ID.String())
-	// if err != nil {
-	// 	return nil, fmt.Errorf("%w: %w", ErrConvertIDfromDB, err)
-	// }
-
 	return domain.HydratePerson(
-		smp.ID, smp.FirstName, smp.LastName, smp.Email, smp.DOB), nil
+		m.ID, m.FirstName, m.LastName, m.Email, m.DOB), nil
 }
