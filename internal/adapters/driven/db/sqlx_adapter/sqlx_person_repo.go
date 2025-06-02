@@ -32,13 +32,13 @@ func NewSQLxPersonRepo(sqldb *sql.DB) (*SQLxPersonRepo, error) {
 	return &SQLxPersonRepo{db: db}, nil
 }
 
-func (spr *SQLxPersonRepo) Save(ctx context.Context, person *domain.Person) error {
+func (spr *SQLxPersonRepo) Save(ctx context.Context, person *domain.Person) (*domain.Person, error) {
 
 	// convert from domain.Person to SQLxPersonModel first
 	sqlxModel := toSQLxModelPerson(person)
 
 	if sqlxModel == nil {
-		return dbcommon.ErrConvertNilPerson
+		return nil, dbcommon.ErrConvertNilPerson
 	}
 
 	query := `
@@ -52,11 +52,12 @@ func (spr *SQLxPersonRepo) Save(ctx context.Context, person *domain.Person) erro
 
 	result, err := spr.db.NamedExecContext(ctx, query, sqlxModel)
 	if err != nil {
-		return fmt.Errorf("%w (ID:%s): %w", ErrSqlxSavePerson, person.ID().String(), err)
+		return nil, fmt.Errorf("%w (ID:%s): %w", ErrSqlxSavePerson, person.ID().String(), err)
 	}
 
 	rowsAffected, err := result.RowsAffected()
 
+	var createdPerson *domain.Person
 	switch {
 	case err != nil:
 		log.Printf("SQLx: Warning - couldn't get rows affected for ID: %s, %v", person.ID().String(), err)
@@ -66,12 +67,12 @@ func (spr *SQLxPersonRepo) Save(ctx context.Context, person *domain.Person) erro
 
 	default:
 		log.Printf("SQLx: Successfully saved/updated person ID %s. Fetching current state.", person.ID().String())
-		_, err = spr.GetByID(ctx, person.ID().String())
+		createdPerson, err = spr.GetByID(ctx, person.ID().String())
 		if err != nil {
-			return fmt.Errorf("%w, ID: %s, %w", dbcommon.ErrSavedButNotInDB, person.ID().String(), err)
+			return nil, fmt.Errorf("%w, ID: %s, %w", dbcommon.ErrSavedButNotInDB, person.ID().String(), err)
 		}
 	}
-	return nil
+	return createdPerson, nil
 }
 
 func (spr *SQLxPersonRepo) GetByID(ctx context.Context, personId string) (*domain.Person, error) {

@@ -32,21 +32,22 @@ func NewBunPersonRepo(sqldb *sql.DB) (*BunPersonRepo, error) {
 	}, nil
 }
 
-func (bpr *BunPersonRepo) Save(ctx context.Context, person *domain.Person) error {
+func (bpr *BunPersonRepo) Save(ctx context.Context, person *domain.Person) (*domain.Person, error) {
 
 	// convert from domain.Person to BunPersonModel first
 	bunModel := toBunModelPerson(person)
 
 	if bunModel == nil {
-		return dbcommon.ErrConvertNilPerson
+		return nil, dbcommon.ErrConvertNilPerson
 	}
 
 	result, err := bpr.db.NewInsert().Model(bunModel).On("CONFLICT (id) DO UPDATE").Exec(ctx)
 	if err != nil {
-		return fmt.Errorf("%w (ID:%s): %w", ErrBunSavePerson, person.ID().String(), err)
+		return nil, fmt.Errorf("%w (ID:%s): %w", ErrBunSavePerson, person.ID().String(), err)
 	}
 
 	rowsAffected, err := result.RowsAffected()
+	var createdPerson *domain.Person
 
 	switch {
 	case err != nil:
@@ -57,12 +58,12 @@ func (bpr *BunPersonRepo) Save(ctx context.Context, person *domain.Person) error
 
 	default:
 		log.Printf("Bun: Successfully saved/updated person ID %s. Fetching current state.", person.ID().String())
-		_, err = bpr.GetByID(ctx, person.ID().String())
+		createdPerson, err = bpr.GetByID(ctx, person.ID().String())
 		if err != nil {
-			return fmt.Errorf("%w, ID: %s, %w", dbcommon.ErrSavedButNotInDB, person.ID().String(), err)
+			return nil, fmt.Errorf("%w, ID: %s, %w", dbcommon.ErrSavedButNotInDB, person.ID().String(), err)
 		}
 	}
-	return nil
+	return createdPerson, nil
 }
 
 func (bpr *BunPersonRepo) GetByID(ctx context.Context, personId string) (*domain.Person, error) {
