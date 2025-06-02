@@ -41,16 +41,3 @@ func (s *StdAPIServer) Shutdown(ctx context.Context) error {
 	log.Printf("Shutting down net/http gracefully...")
 	return s.httpServer.Shutdown(ctx)
 }
-
-func StartServer(router http.Handler, addr string) {
-	// if addr == "" {
-	// 	log.Println("Server address not specified. Using port", DefaultServerAddress)
-	// 	addr = DefaultServerAddress
-	// }
-
-	err := http.ListenAndServe(":"+addr, router)
-	if err != nil {
-		log.Fatalf("FATAL: API server failed: %v", err)
-
-	}
-}
