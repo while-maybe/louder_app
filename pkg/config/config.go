@@ -21,7 +21,7 @@ func LoadConfig() *AppConfig {
 	}
 
 	return &AppConfig{
-		ServerPort: getEnv("REST_API_SERVER_PORT", ":8080"),
+		ServerPort: getEnv("REST_API_SERVER_PORT", "8080"),
 	}
 }
 

@@ -207,3 +207,5 @@ folder_info.md
 # exclude binaries
 ./louder
 
+# exclude sqlite db file
+louder.db
