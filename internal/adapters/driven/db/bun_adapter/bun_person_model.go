@@ -10,9 +10,9 @@ import (
 )
 
 type BunModelPerson struct {
-	bun.BaseModel `bun:"table:person, alias:p"`
+	bun.BaseModel `bun:"table:person,alias:p"`
 
-	ID        domain.PersonID `bun:"id, pk"`
+	ID        domain.PersonID `bun:"id,pk"`
 	FirstName string          `bun:"first_name"`
 	LastName  string          `bun:"last_name"`
 	Email     string          `bun:"email"`
