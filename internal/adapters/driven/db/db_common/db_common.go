@@ -12,7 +12,7 @@ const (
 	ErrConvertNilPerson = Error("error convert nil person to DB model")
 	ErrEmptyID          = Error("error given ID is empty")
 	ErrInvalidID        = Error("error invalid person ID format")
-	ErrNotFoundInDB     = Error("error cannot find this ID in DB")
+	ErrNotFound         = Error("error cannot find this ID in DB")
 	ErrDBQueryFailed    = Error("error query has failed")
 	ErrNilDomainPerson  = Error("error conversion returned nil domain person without error")
 	// TODO individual errors for each adapter type

@@ -48,7 +48,7 @@ func Init(dbFilePath string) (*sql.DB, error) {
 func CreateSchema(db *sql.DB) error {
 	personSchema := `
 		CREATE TABLE IF NOT EXISTS person (
-			id VARCHAR(16) PRIMARY KEY,
+			id BLOB(16) PRIMARY KEY,
 			first_name VARCHAR(40) NOT NULL,
 			last_name VARCHAR(40) NOT NULL,
 			email VARCHAR(255) UNIQUE NOT NULL,

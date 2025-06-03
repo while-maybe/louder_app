@@ -10,6 +10,7 @@ import (
 	"louder/internal/core/domain"
 	drivenports "louder/internal/core/ports/driven"
 
+	"github.com/gofrs/uuid/v5"
 	"github.com/uptrace/bun"
 	"github.com/uptrace/bun/dialect/sqlitedialect"
 )
@@ -58,7 +59,7 @@ func (bpr *BunPersonRepo) Save(ctx context.Context, person *domain.Person) (*dom
 
 	default:
 		log.Printf("Bun: Successfully saved/updated person ID %s. Fetching current state.", person.ID().String())
-		createdPerson, err = bpr.GetByID(ctx, person.ID().String())
+		createdPerson, err = bpr.GetByID(ctx, person.ID())
 		if err != nil {
 			return nil, fmt.Errorf("%w, ID: %s, %w", dbcommon.ErrSavedButNotInDB, person.ID().String(), err)
 		}
@@ -66,32 +67,37 @@ func (bpr *BunPersonRepo) Save(ctx context.Context, person *domain.Person) (*dom
 	return createdPerson, nil
 }
 
-func (bpr *BunPersonRepo) GetByID(ctx context.Context, personId string) (*domain.Person, error) {
-	if personId == "" {
+func (bpr *BunPersonRepo) GetByID(ctx context.Context, pid domain.PersonID) (*domain.Person, error) {
+	// check if pid is empty
+	if uuid.UUID(pid).IsNil() {
 		return nil, dbcommon.ErrEmptyID
 	}
 
-	// validate format
-	_, err := domain.PersonIDFromString(personId)
-	if err != nil {
-		return nil, fmt.Errorf("%w ID: %s, %w", dbcommon.ErrInvalidID, personId, err)
+	// check if pid is properly formatted
+	if _, err := uuid.FromBytes(pid.Bytes()); err != nil {
+		return nil, dbcommon.ErrInvalidID
+	}
+
+	// check if pid is the right uuid version (version 7)
+	if uuid.UUID(pid).Version() != 7 {
+		return nil, dbcommon.ErrInvalidID
 	}
 
 	bunModel := new(BunModelPerson)
 
-	err = bpr.db.NewSelect().Model(bunModel).Where("id = ?", personId).Scan(ctx)
+	err := bpr.db.NewSelect().Model(bunModel).Where("id = ?", pid).Scan(ctx)
 
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, fmt.Errorf("%w for ID '%s'", dbcommon.ErrNotFoundInDB, personId)
+			return nil, fmt.Errorf("%w for ID '%s'", dbcommon.ErrNotFound, pid.String())
 		}
-		return nil, fmt.Errorf("%w ID: %s, %w", dbcommon.ErrDBQueryFailed, personId, err)
+		return nil, fmt.Errorf("%w ID: %s, %w", dbcommon.ErrDBQueryFailed, pid.String(), err)
 	}
 
 	retrievedPerson, err := bunModel.toDomainPerson()
 	if err != nil {
-		log.Printf("error BunPersonRepo.GetByID - Failed to convert BunModelPerson to domain.Person for ID '%s'. Model: %+v. Error: %v", personId, bunModel, err)
-		return nil, fmt.Errorf("%w, ID: %s, %w", dbcommon.ErrConvertPerson, personId, err)
+		log.Printf("error BunPersonRepo.GetByID - Failed to convert BunModelPerson to domain.Person for ID '%s'. Model: %+v. Error: %v", pid.String(), bunModel, err)
+		return nil, fmt.Errorf("%w, ID: %s, %w", dbcommon.ErrConvertPerson, pid.String(), err)
 	}
 
 	return retrievedPerson, nil

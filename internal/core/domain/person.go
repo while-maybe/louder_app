@@ -48,9 +48,15 @@ func (pid PersonID) String() string {
 	return uuid.UUID(pid).String()
 }
 
+// Bytes returns a slice of bytes representation of the PersonID
+func (pid PersonID) Bytes() []byte {
+	return uuid.UUID(pid).Bytes()
+}
+
 // Value implements the driver.Valuer interface for database storage. This tells the SQL driver how to store PersonID in the database.
 func (pid PersonID) Value() (driver.Value, error) {
-	return uuid.UUID(pid).String(), nil // Store as string
+	return uuid.UUID(pid).Bytes(), nil
+	// return uuid.UUID(pid).String(), nil // Store as string
 }
 
 // isNil checks if the PersonID is a "zero" or nil UUID

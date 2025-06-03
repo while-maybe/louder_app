@@ -30,7 +30,7 @@ type CreatePersonRequest struct {
 	Email     string `json:"email"`
 }
 
-// PersonResponse defines the JSON payload for creating a person.
+// PersonResponse defines the JSON payload for returning a person just created (inc UUID).
 // This is also DTO for the HTTP layer.
 type PersonResponse struct {
 	ID        string `json:"id"`

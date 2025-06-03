@@ -10,6 +10,7 @@ import (
 	"louder/internal/core/domain"
 	drivenports "louder/internal/core/ports/driven"
 
+	"github.com/gofrs/uuid"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -67,7 +68,7 @@ func (spr *SQLxPersonRepo) Save(ctx context.Context, person *domain.Person) (*do
 
 	default:
 		log.Printf("SQLx: Successfully saved/updated person ID %s. Fetching current state.", person.ID().String())
-		createdPerson, err = spr.GetByID(ctx, person.ID().String())
+		createdPerson, err = spr.GetByID(ctx, person.ID())
 		if err != nil {
 			return nil, fmt.Errorf("%w, ID: %s, %w", dbcommon.ErrSavedButNotInDB, person.ID().String(), err)
 		}
@@ -75,16 +76,17 @@ func (spr *SQLxPersonRepo) Save(ctx context.Context, person *domain.Person) (*do
 	return createdPerson, nil
 }
 
-func (spr *SQLxPersonRepo) GetByID(ctx context.Context, personId string) (*domain.Person, error) {
-	if personId == "" {
+func (spr *SQLxPersonRepo) GetByID(ctx context.Context, pid domain.PersonID) (*domain.Person, error) {
+
+	if uuid.UUID(pid).IsNil() {
 		return nil, dbcommon.ErrEmptyID
 	}
 
 	// validate format
-	_, err := domain.PersonIDFromString(personId)
-	if err != nil {
-		return nil, fmt.Errorf("%w ID: %s, %w", dbcommon.ErrInvalidID, personId, err)
-	}
+	// _, err := domain.PersonIDFromString(personId)
+	// if err != nil {
+	// 	return nil, fmt.Errorf("%w ID: %s, %w", dbcommon.ErrInvalidID, personId, err)
+	// }
 
 	query := `
 		SELECT id, first_name, last_name, email, dob
@@ -93,18 +95,18 @@ func (spr *SQLxPersonRepo) GetByID(ctx context.Context, personId string) (*domai
 
 	var sqlxModel SQLxModelPerson
 
-	err = spr.db.GetContext(ctx, &sqlxModel, query, personId)
+	err := spr.db.GetContext(ctx, &sqlxModel, query, pid)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, fmt.Errorf("%w ID: %s", dbcommon.ErrNotFoundInDB, personId)
+			return nil, fmt.Errorf("%w ID: %s", dbcommon.ErrNotFound, pid.String())
 		}
-		return nil, fmt.Errorf("%w ID: %s, %w", dbcommon.ErrDBQueryFailed, personId, err)
+		return nil, fmt.Errorf("%w ID: %s, %w", dbcommon.ErrDBQueryFailed, pid.String(), err)
 	}
 
 	// convert from SQLxPersonModel to domain.Person to
 	retrievedPerson, err := sqlxModel.toDomainPerson()
 	if err != nil {
-		return nil, fmt.Errorf("%w, ID: %s, %w", dbcommon.ErrConvertPerson, personId, err)
+		return nil, fmt.Errorf("%w, ID: %s, %w", dbcommon.ErrConvertPerson, pid.String(), err)
 	}
 
 	return retrievedPerson, nil

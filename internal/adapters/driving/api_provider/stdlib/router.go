@@ -21,7 +21,7 @@ func NewRouter(
 	r.HandleFunc(http.MethodGet+" "+NewRandomNumberRoute, randomNumberHandler.HandleGetRandomNumber)
 	// Person
 	r.HandleFunc(http.MethodPost+" "+NewPersonRoute, personHandler.HandleCreatePerson)
-	// r.HandleFunc(http.MethodGet+" "+GetPersonRoute, personHandler.HandleGetPerson)
+	r.HandleFunc(http.MethodGet+" "+GetPersonRoute, personHandler.HandleGetPersonByID)
 	// TODO research timout on individual routes
 	return r
 }

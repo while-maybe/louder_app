@@ -17,11 +17,15 @@ package service
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
+	dbcommon "louder/internal/adapters/driven/db/db_common"
 	"louder/internal/core/domain"
 	drivenports "louder/internal/core/ports/driven"
 	drivingports "louder/internal/core/ports/driving"
+
+	"github.com/gofrs/uuid/v5"
 )
 
 type personServiceImpl struct {
@@ -95,8 +99,37 @@ func (ps *personServiceImpl) CreatePerson(ctx context.Context, firstName, lastNa
 		return nil, fmt.Errorf("failed to save person: %w", err) // Generic persistence error
 	}
 
-	// 5. [Optional] Publish Domain Event (e.g., PersonCreatedEvent) ps.eventPublisher.Publish(ctx, domain.NewPersonCreatedEvent(savedPerson.ID(), ...))
+	// Publish Domain Event (e.g., PersonCreatedEvent) ps.eventPublisher.Publish(ctx, domain.NewPersonCreatedEvent(savedPerson.ID(), ...))
 
-	log.Printf("INFO CreatePerson: Successfully created person ID %s", savedPerson.ID().String())
+	log.Printf("INFO CreatePerson: Successfully created person ID %s\n", savedPerson.ID().String())
+	return savedPerson, nil
+}
+
+// GetPersonByID implements the business logic for getting a person by ID from the DB
+func (ps *personServiceImpl) GetPersonByID(ctx context.Context, pid domain.PersonID) (*domain.Person, error) {
+	// TODO get some proper validation going lazy! (regex?)
+	if uuid.UUID(pid).IsNil() {
+		return nil, fmt.Errorf("%w: id cannot be nil", ErrInvalidPersonData)
+	}
+
+	savedPerson, err := ps.personRepo.GetByID(ctx, pid)
+	if err != nil {
+		log.Printf("warning GetPersonByID - personRepo (ID: %s): %v", pid.String(), err)
+
+		if errors.Is(err, dbcommon.ErrNotFound) {
+			return nil, fmt.Errorf("failed to get person: %w", err)
+		}
+		// For any other repository error, return a generic service/repository interaction error
+		return nil, fmt.Errorf("service error: failed to retrieve person with ID %s from repository: %w", pid.String(), err)
+	}
+
+	// On success (err == nil), savedPerson variable holds the result. Defensive check: A well-behaved repository should not return (nil, nil).
+	if savedPerson == nil {
+		log.Printf("error GetPersonByID - repository returned (nil, nil) for ID %s, which is unexpected.", pid.String())
+		// Return a generic service error as this indicates an issue with the repository implementation.
+		return nil, fmt.Errorf("service error: inconsistent repository response for ID %s", pid.String())
+	}
+
+	log.Printf("INFO GetPersonByID: person with ID %s found\n", savedPerson.ID().String())
 	return savedPerson, nil
 }

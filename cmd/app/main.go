@@ -103,7 +103,7 @@ func main() {
 	log.Println("shutdown signal received. starting graceful shutdown...")
 
 	// this is a new context with a timeout for the graceful shutdown only
-	shutdownCtx, cancelShutdown := context.WithTimeout(context.Background(), 2*time.Second)
+	shutdownCtx, cancelShutdown := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancelShutdown()
 
 	// do the actual shutdown here
