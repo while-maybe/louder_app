@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"database/sql/driver"
 	"fmt"
 	"math/rand"
 	"time"
@@ -47,11 +48,17 @@ func (pid PersonID) String() string {
 	return uuid.UUID(pid).String()
 }
 
+// Value implements the driver.Valuer interface for database storage. This tells the SQL driver how to store PersonID in the database.
+func (pid PersonID) Value() (driver.Value, error) {
+	return uuid.UUID(pid).String(), nil // Store as string
+}
+
 // isNil checks if the PersonID is a "zero" or nil UUID
 func (pid PersonID) isNil() bool {
 	return uuid.UUID(pid).IsNil()
 }
 
+// Scan implements the sql.Scanner interface for reading from the database. This tells the SQL driver how to convert the database value back to PersonID.
 func (pid *PersonID) Scan(value any) error {
 	if value == nil {
 		*pid = PersonID(uuid.Nil)
@@ -86,7 +93,7 @@ func NewRandomDOB() time.Time {
 	randDays := rand.Intn(maxApproxDays) + 1
 	randomTimeOfDay := time.Duration(rand.Intn(24*3600)) * time.Second
 	// .AddDate on its own, returns a time.Time with 00h00m00s so we add a random time of day
-	return time.Now().UTC().AddDate(0, 0, -randDays).Add(randomTimeOfDay)
+	return time.Now().AddDate(0, 0, -randDays).Add(randomTimeOfDay).UTC()
 }
 
 // NewPerson factory function
@@ -134,5 +141,5 @@ func (p *Person) Email() string {
 }
 
 func (p *Person) DOB() time.Time {
-	return p.dob
+	return p.dob.UTC()
 }
