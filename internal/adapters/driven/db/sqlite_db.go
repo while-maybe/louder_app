@@ -7,6 +7,8 @@ import (
 	dbcommon "louder/internal/adapters/driven/db/db_common"
 	"os"
 	"path/filepath"
+
+	_ "github.com/mattn/go-sqlite3" // SQLite driver
 )
 
 // Sentinel errors for unit testing later
@@ -50,7 +52,7 @@ func CreateSchema(db *sql.DB) error {
 			first_name VARCHAR(40) NOT NULL,
 			last_name VARCHAR(40) NOT NULL,
 			email VARCHAR(255) UNIQUE NOT NULL,
-			dob VARCHAR(30) NOT NULL
+			dob DATETIME NOT NULL
 		);`
 
 	_, err := db.Exec(personSchema)
