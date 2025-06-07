@@ -44,6 +44,7 @@ func (h *PersonHandler) HandleGetPersonByID(w http.ResponseWriter, r *http.Reque
 		http.Error(w, "id cannot be blank", http.StatusBadRequest)
 		return
 	}
+
 	// convert the string we extracted into a uuid (also check for a valid uuid)
 	personUUID, err := uuid.FromString(idStr)
 	if err != nil {

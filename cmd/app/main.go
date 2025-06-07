@@ -40,10 +40,18 @@ func main() {
 		}
 	}() // this is deferred to ensure it happens on shutdown
 
-	err = sqlitedbadapter.CreateSchema(db)
+	// Define the path to your migration files
+	migrationsPath := "./migrations" // Best to move this to your config eventually
+
+	// Run database migrations instead of creating new one
+	err = sqlitedbadapter.RunMigrations(db, migrationsPath)
 	if err != nil {
-		log.Fatalf("error cannot initialise db schema: %s", err)
+		log.Fatalf("error cannot run database migrations: %v", err)
 	}
+	// err = sqlitedbadapter.CreateSchema(db)
+	// if err != nil {
+	// 	log.Fatalf("error cannot initialise db schema: %s", err)
+	// }
 
 	// a little silly at the moment but Creating a single person is done through Bun, the whole list of people through SQLx
 	singlePostRepo, err := bunadapter.NewBunPersonRepo(db)
