@@ -4,7 +4,7 @@ import (
 	"fmt"
 	dbcommon "louder/internal/adapters/driven/db/db_common"
 	"louder/internal/core/domain"
-	"time"
+	"louder/pkg/types"
 )
 
 const (
@@ -18,7 +18,7 @@ type SQLxModelPerson struct {
 	FirstName string          `db:"first_name"`
 	LastName  string          `db:"last_name"`
 	Email     string          `db:"email"`
-	DOB       time.Time       `db:"dob"`
+	DOB       types.UTCTime   `db:"dob"`
 }
 
 // mappers

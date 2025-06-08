@@ -3,7 +3,9 @@ package domain
 import (
 	"database/sql/driver"
 	"fmt"
+	"louder/pkg/types"
 	"math/rand"
+	"strings"
 	"time"
 
 	"github.com/gofrs/uuid/v5"
@@ -16,7 +18,7 @@ type Person struct {
 	firstName string
 	lastName  string
 	email     string
-	dob       time.Time
+	dob       types.UTCTime
 
 	// TODO - implement later
 	pets             []Pet
@@ -99,11 +101,11 @@ func NewRandomDOB() time.Time {
 	randDays := rand.Intn(maxApproxDays) + 1
 	randomTimeOfDay := time.Duration(rand.Intn(24*3600)) * time.Second
 	// .AddDate on its own, returns a time.Time with 00h00m00s so we add a random time of day
-	return time.Now().AddDate(0, 0, -randDays).Add(randomTimeOfDay).UTC()
+	return time.Now().AddDate(0, 0, -randDays).Add(randomTimeOfDay)
 }
 
 // NewPerson factory function
-func NewPerson(firstName, lastName, email string, dob time.Time) (*Person, error) {
+func NewPerson(firstName, lastName, email string, dob types.UTCTime) (*Person, error) {
 	personID, err := NewPersonID()
 	if err != nil {
 		return nil, err
@@ -113,13 +115,13 @@ func NewPerson(firstName, lastName, email string, dob time.Time) (*Person, error
 		id:        personID,
 		firstName: firstName,
 		lastName:  lastName,
-		email:     email,
+		email:     strings.ToLower(email),
 		dob:       dob,
 	}, nil
 }
 
 // HydratePerson accepts data from repository and creates a new Person object from it
-func HydratePerson(id PersonID, firstName, lastName, email string, dob time.Time) *Person {
+func HydratePerson(id PersonID, firstName, lastName, email string, dob types.UTCTime) *Person {
 	return &Person{
 		id:        id,
 		firstName: firstName,
@@ -146,6 +148,6 @@ func (p *Person) Email() string {
 	return p.email
 }
 
-func (p *Person) DOB() time.Time {
-	return p.dob.UTC()
+func (p *Person) DOB() types.UTCTime {
+	return p.dob
 }

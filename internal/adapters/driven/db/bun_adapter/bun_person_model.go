@@ -4,7 +4,7 @@ import (
 	"fmt"
 	dbcommon "louder/internal/adapters/driven/db/db_common"
 	"louder/internal/core/domain"
-	"time"
+	"louder/pkg/types"
 
 	"github.com/uptrace/bun"
 )
@@ -16,7 +16,7 @@ type BunModelPerson struct {
 	FirstName string          `bun:"first_name"`
 	LastName  string          `bun:"last_name"`
 	Email     string          `bun:"email"`
-	DOB       time.Time       `bun:"dob"`
+	DOB       types.UTCTime   `bun:"dob"`
 }
 
 // mappers

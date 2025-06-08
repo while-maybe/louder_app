@@ -38,10 +38,10 @@ func (bpr *BunPersonRepo) Save(ctx context.Context, person *domain.Person) (*dom
 	// convert from domain.Person to BunPersonModel first
 	bunModel := toBunModelPerson(person)
 
+	fmt.Println(bunModel)
 	if bunModel == nil {
 		return nil, dbcommon.ErrConvertNilPerson
 	}
-
 	result, err := bpr.db.NewInsert().Model(bunModel).On("CONFLICT (id) DO UPDATE").Exec(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("%w (ID:%s): %w", ErrBunSavePerson, person.ID().String(), err)

@@ -24,6 +24,7 @@ import (
 	"louder/internal/core/domain"
 	drivenports "louder/internal/core/ports/driven"
 	drivingports "louder/internal/core/ports/driving"
+	"louder/pkg/types"
 
 	"github.com/gofrs/uuid/v5"
 )
@@ -78,8 +79,8 @@ func (ps *personServiceImpl) CreatePerson(ctx context.Context, firstName, lastNa
 	//    }
 
 	// create the domain object
-	newPersonDOB := domain.NewRandomDOB()
-	newPerson, err := domain.NewPerson(firstName, lastName, email, newPersonDOB)
+	randomDOBTime := types.NewUTCTime(domain.NewRandomDOB())
+	newPerson, err := domain.NewPerson(firstName, lastName, email, randomDOBTime)
 	if err != nil {
 		// This error likely means the data failed domain-level validation within NewPerson
 		log.Printf("error CreatePerson - domain.NewPerson: %v", err)
