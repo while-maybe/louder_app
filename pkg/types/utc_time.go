@@ -28,6 +28,7 @@ func (t UTCTime) Value() (driver.Value, error) {
 		// if given time is a zero return a zero as there's a db constraint (not null)
 		return nil, ErrZeroValueTime
 	}
+	// couldn't make it store in db in format "dob": "1947-03-15T05:01:08Z", without .Format (making a string that sqlite3 magically turns to datetime - which is internally  interpreted as string... yeah...)
 	return t.Time.UTC().Format(time.RFC3339), nil
 }
 
