@@ -39,3 +39,7 @@ migrate-down: ## Revert the last 'down' migration
 migrate-status: ## Show the current migration status
 	@echo ">> Checking migration status..."
 	@migrate -database "$(DB_URL)" -path "$(MIGRATIONS_PATH)" version
+
+migrate-force: ## Force a migration to a different version
+	@echo ">> Forcing migration to $(version)..."
+	@migrate -database "$(DB_URL)" -path "$(MIGRATIONS_PATH)" force $(version)
