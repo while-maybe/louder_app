@@ -22,7 +22,7 @@ func (s *StdLibGenerator) GenerateRandomNumber() domain.RandomNumber {
 func (s *StdLibGenerator) GenerateDiceRoll(numDice, sides uint) (*domain.RandomDice, error) {
 
 	if err := domain.ValidateDiceParameters(numDice, sides); err != nil {
-		return nil, fmt.Errorf("error dice paramaters are incorrect: %w", err)
+		return nil, fmt.Errorf("error adapter failed: %w", err)
 	}
 
 	result := make([]uint, numDice, numDice)

@@ -23,9 +23,9 @@ func NewRandNumberService(repo Repository) Port {
 // what behaviours/actions/jobs should this service be able to perform and offer to whoever calls it?
 
 // GetRandomNumber returns a uint random number
-func (s *Service) GetRandomNumber() *domain.RandomNumber {
+func (s *Service) GetRandomNumber() domain.RandomNumber {
 	rn := s.repo.GenerateRandomNumber()
-	return &rn
+	return rn
 }
 
 // RollDice takes the number of dice and number of sides per dice and return the result as a RandomDice object or an error

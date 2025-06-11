@@ -28,7 +28,7 @@ func (h *RandomNumberHandler) HandleGetRandomNumber(w http.ResponseWriter, r *ht
 	log.Println("stdlib API adapter: Got GET request for /random")
 
 	randomNumber := h.RandomNumberService.GetRandomNumber()
-	response := RandomNumberResponse{RandomNumber: *randomNumber}
+	response := RandomNumberResponse{RandomNumber: randomNumber}
 
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(response); err != nil {
