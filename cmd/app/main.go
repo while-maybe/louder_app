@@ -5,6 +5,7 @@ import (
 	"log"
 	sqlitedbadapter "louder/internal/adapters/driven/db"
 	bunadapter "louder/internal/adapters/driven/db/bun_adapter"
+	randomgenerator "louder/internal/adapters/driven/random_generator"
 	"net/http"
 	"os"
 	"os/signal"
@@ -15,6 +16,7 @@ import (
 	dbdriven "louder/internal/adapters/driven/mock_db"
 	apidriving "louder/internal/adapters/driving/api_provider/stdlib"
 	coreservice "louder/internal/core/service"
+	randomnumber "louder/internal/core/service/randomnumbers"
 	"louder/pkg/config"
 )
 
@@ -24,9 +26,9 @@ func main() {
 	// serverAddr := os.Getenv("SERVER_ADDR")
 	log.Println("LOUDER starting")
 
-	// instantiate driven adapters for mockDB
+	// instantiate driven adapters
 	dataRepo := dbdriven.NewMockDBMessageRepository("Message With Time")
-	randomRepo := dbdriven.NewMockDBRandRepository("Random number")
+	randomGen := randomgenerator.NewStdLibGenerator()
 
 	// instantiate driven adapter for sqlitedb
 	db, err := sqlitedbadapter.Init("./louder.db")
@@ -66,7 +68,7 @@ func main() {
 
 	// instantiate core app services
 	messageService := coreservice.NewMessageService(dataRepo)
-	randomNumberService := coreservice.NewRandNumberService(randomRepo)
+	randomNumberService := randomnumber.NewRandNumberService(randomGen)
 
 	// instantiate single Person get via Bun
 	singlePostService := coreservice.NewPersonService(singlePostRepo)

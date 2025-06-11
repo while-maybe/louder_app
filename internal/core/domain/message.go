@@ -6,8 +6,6 @@ import (
 
 type Message string
 
-type RandomNumber uint
-
 type MsgWithTime struct {
 	Timestamp time.Time
 	Content   string

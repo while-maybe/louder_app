@@ -4,7 +4,8 @@ import (
 	"encoding/json"
 	"log"
 	"louder/internal/core/domain"
-	drivingports "louder/internal/core/ports/driving"
+	randomnumber "louder/internal/core/service/randomnumbers"
+
 	"net/http"
 )
 
@@ -12,22 +13,22 @@ type RandomNumberResponse struct {
 	RandomNumber domain.RandomNumber `json:"random_number,omitempty"`
 }
 
-// RandomNumber Handlers
+// RandomNumber Handler
 
 type RandomNumberHandler struct {
-	RandomNumberService drivingports.RandomNumberService // inject core service
+	RandomNumberService randomnumber.Port // inject core service
 }
 
-func NewRandomNumberHandler(service drivingports.RandomNumberService) *RandomNumberHandler {
+func NewRandomNumberHandler(service randomnumber.Port) *RandomNumberHandler {
 	return &RandomNumberHandler{RandomNumberService: service}
 }
 
 // HandleGetRandomNumber is an http.HandlerFunc for the /random route
-func (mh *RandomNumberHandler) HandleGetRandomNumber(w http.ResponseWriter, r *http.Request) {
+func (h *RandomNumberHandler) HandleGetRandomNumber(w http.ResponseWriter, r *http.Request) {
 	log.Println("stdlib API adapter: Got GET request for /random")
 
-	randomNumberData := mh.RandomNumberService.GetRandomNumber()
-	response := RandomNumberResponse{RandomNumber: randomNumberData}
+	randomNumber := h.RandomNumberService.GetRandomNumber()
+	response := RandomNumberResponse{RandomNumber: *randomNumber}
 
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(response); err != nil {
