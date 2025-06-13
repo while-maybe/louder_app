@@ -20,6 +20,12 @@ func NewRandNumberService(repo Repository) Port {
 	}
 }
 
+func NewDiceRollService(repo Repository) Port {
+	return &Service{
+		repo: repo,
+	}
+}
+
 // what behaviours/actions/jobs should this service be able to perform and offer to whoever calls it?
 
 // GetRandomNumber returns a uint random number

@@ -69,6 +69,8 @@ func main() {
 	// instantiate core app services
 	messageService := coreservice.NewMessageService(dataRepo)
 	randomNumberService := randomnumber.NewRandNumberService(randomGen)
+	// dice roll has been defined on same Service as randomRumber
+	diceRollService := randomnumber.NewDiceRollService(randomGen)
 
 	// instantiate single Person get via Bun
 	singlePostService := coreservice.NewPersonService(singlePostRepo)
@@ -76,8 +78,9 @@ func main() {
 	// peopleService := coreservice.NewPersonService(peopleRepo)
 
 	// instantiate driving adapters
-	messageHandler := apidriving.NewMessageHandler(messageService)
 	randomNumberHandler := apidriving.NewRandomNumberHandler(randomNumberService)
+	diceRollHandler := apidriving.NewRandomDiceHandler(diceRollService)
+	messageHandler := apidriving.NewMessageHandler(messageService)
 
 	// for now with only the POST user Handler
 	singlePostHandler := apidriving.NewPersonHandler(singlePostService)
@@ -86,7 +89,7 @@ func main() {
 	// var _ *coreservice.personServiceImpl = peopleService
 
 	// instantiate router
-	router := apidriving.NewRouter(messageHandler, randomNumberHandler, singlePostHandler)
+	router := apidriving.NewRouter(randomNumberHandler, diceRollHandler, messageHandler, singlePostHandler)
 
 	// wrap the router in a timeout handler - every incoming request will have a 5 sec deadline
 	timeoutDuration := 5 * time.Second

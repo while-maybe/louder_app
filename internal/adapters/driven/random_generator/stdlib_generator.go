@@ -19,22 +19,29 @@ func (s *StdLibGenerator) GenerateRandomNumber() domain.RandomNumber {
 	return domain.RandomNumber(rand.Uint())
 }
 
+const (
+	maxDice  = 10
+	maxSides = 20
+)
+
 func (s *StdLibGenerator) GenerateDiceRoll(numDice, sides uint) (*domain.RandomDice, error) {
 
-	if err := domain.ValidateDiceParameters(numDice, sides); err != nil {
+	newDiceRoll := domain.RandomDice{
+		MaxDice:  maxDice,
+		MaxSides: maxSides,
+	}
+
+	if err := newDiceRoll.ValidateDiceParameters(numDice, sides); err != nil {
 		return nil, fmt.Errorf("error adapter failed: %w", err)
 	}
 
-	result := make([]uint, numDice, numDice)
-	var sum uint
+	newDiceRoll.Roll = make([]uint, numDice, numDice)
+	// var sum uint
 
 	for i := range numDice {
-		result[i] = uint(rand.IntN(int(sides)) + 1)
-		sum += result[i]
+		newDiceRoll.Roll[i] = uint(rand.IntN(int(sides)) + 1)
+		newDiceRoll.RollSum += newDiceRoll.Roll[i]
 	}
 
-	return &domain.RandomDice{
-		Roll:    result,
-		RollSum: sum,
-	}, nil
+	return &newDiceRoll, nil
 }
