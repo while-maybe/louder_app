@@ -1,4 +1,4 @@
-package stdlibapiadapter
+package messageadapter
 
 import (
 	"encoding/json"
@@ -16,6 +16,13 @@ type MessageResponse struct {
 
 type MessageHandler struct {
 	MessageService drivingports.MessageService // injected core service
+}
+
+func (h *MessageHandler) RegisterRoutes(mux *http.ServeMux) {
+	const (
+		NewMessageRoute = "/message"
+	)
+	mux.HandleFunc(http.MethodGet+" "+NewMessageRoute, h.HandleGetMessage)
 }
 
 func NewMessageHandler(service drivingports.MessageService) *MessageHandler {

@@ -1,40 +1,33 @@
-package stdlibapiadapter
+package randomnumberadapter
 
 import (
 	"encoding/json"
 	"errors"
 	"log"
+	stdlibapiadapter "louder/internal/adapters/driving/api_provider/stdlib"
 	"louder/internal/core/domain"
-	randomnumber "louder/internal/core/service/randomnumbers"
+	"louder/internal/core/service/randomnumbers"
 	"strconv"
 	"strings"
 
 	"net/http"
 )
 
-type RandomNumberResponse struct {
-	RandomNumber domain.RandomNumber `json:"random_number,omitempty"`
-}
-
-type DiceRollResponse struct {
-	DiceRoll domain.RandomDice `json:"diceroll"`
-}
-
 // RandomNumber Handler
 type RandomNumberHandler struct {
-	RandomNumberService randomnumber.Port // inject core service
+	RandomNumberService randomnumbers.Port // inject core service
 }
 
 // RandomDice Handler
 type DiceRollHandler struct {
-	RandomDiceService randomnumber.Port
+	RandomDiceService randomnumbers.Port
 }
 
-func NewRandomNumberHandler(service randomnumber.Port) *RandomNumberHandler {
+func NewRandomNumberHandler(service randomnumbers.Port) *RandomNumberHandler {
 	return &RandomNumberHandler{RandomNumberService: service}
 }
 
-func NewRandomDiceHandler(service randomnumber.Port) *DiceRollHandler {
+func NewRandomDiceHandler(service randomnumbers.Port) *DiceRollHandler {
 	return &DiceRollHandler{RandomDiceService: service}
 }
 
@@ -50,10 +43,6 @@ func (h *RandomNumberHandler) HandleGetRandomNumber(w http.ResponseWriter, r *ht
 		log.Printf("Failed to encode random number response %v", err)
 		http.Error(w, "failed to encode response", http.StatusInternalServerError)
 	}
-}
-
-type ErrorResponse struct {
-	ErrorMsgs []string `json:"errors"`
 }
 
 // HandleGetDiceRoll is an http.HandlerFunc for the /diceroll route
@@ -99,7 +88,7 @@ func (h *DiceRollHandler) HandleGetDiceRoll(w http.ResponseWriter, r *http.Reque
 	}
 
 	if len(validationErrors) > 0 {
-		respondWithJSON(w, http.StatusBadRequest, ErrorResponse{ErrorMsgs: validationErrors})
+		stdlibapiadapter.RespondWithJSON(w, http.StatusBadRequest, stdlibapiadapter.ErrorResponse{ErrorMsgs: validationErrors})
 		return
 	}
 
@@ -118,30 +107,15 @@ func (h *DiceRollHandler) HandleGetDiceRoll(w http.ResponseWriter, r *http.Reque
 
 		switch {
 		case len(validationErrors) > 0:
-			respondWithJSON(w, http.StatusBadRequest, ErrorResponse{ErrorMsgs: validationErrors})
+			stdlibapiadapter.RespondWithJSON(w, http.StatusBadRequest, stdlibapiadapter.ErrorResponse{ErrorMsgs: validationErrors})
 		default:
-			respondWithError(w, http.StatusInternalServerError, err.Error())
+			stdlibapiadapter.RespondWithError(w, http.StatusInternalServerError, err.Error())
 		}
 
 		return
 	}
 
-	response := DiceRollResponse{DiceRoll: *diceRoll}
-	respondWithJSON(w, http.StatusOK, response)
-}
-
-func respondWithJSON(w http.ResponseWriter, code int, payload any) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(code)
-
-	if payload != nil {
-		if err := json.NewEncoder(w).Encode(payload); err != nil {
-			log.Printf("Failed to encode JSON response: %v", err)
-		}
-	}
-}
-
-func respondWithError(w http.ResponseWriter, code int, message string) {
-	// We wrap the single message in our standard ErrorResponse struct
-	respondWithJSON(w, code, ErrorResponse{ErrorMsgs: []string{message}})
+	// victory!
+	response := DiceRollResponse{DiceRoll: *toRandomNumberDTO(diceRoll)}
+	stdlibapiadapter.RespondWithJSON(w, http.StatusOK, response)
 }

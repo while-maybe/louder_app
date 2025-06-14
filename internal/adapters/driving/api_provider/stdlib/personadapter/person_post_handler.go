@@ -1,13 +1,11 @@
-package stdlibapiadapter
+package personadapter
 
 import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"louder/internal/core/domain"
 	drivingports "louder/internal/core/ports/driving"
 	"net/http"
-	"time"
 )
 
 // PersonHandler handles HTTP requests related to person entities
@@ -19,41 +17,6 @@ type PersonHandler struct {
 func NewPersonHandler(srv drivingports.PersonService) *PersonHandler {
 	return &PersonHandler{
 		service: srv,
-	}
-}
-
-// CreatePersonRequest defines the expected JSON payload for creating a person.
-// This is a Data Transfer Object (DTO) for the HTTP layer.
-type CreatePersonRequest struct {
-	FirstName string `json:"first_name"`
-	LastName  string `json:"last_name"`
-	Email     string `json:"email"`
-}
-
-// PersonResponse defines the JSON payload for returning a person just created (inc UUID).
-// This is also DTO for the HTTP layer.
-type PersonResponse struct {
-	ID        string `json:"id"`
-	FirstName string `json:"first_name"`
-	LastName  string `json:"last_name"`
-	Email     string `json:"email"`
-	DOB       string `json:"dob"`
-
-	// TODO - implement later
-	// Pets             []domain.Pet `json:"pets,omitempty"`
-	// BirthCountry     domain.Country `json:"birth_country,omitempty"`
-	// ResidentCountry  domain.Country `json:"residence_country,omitempty"`
-	// VisitedCountries []domain.Country `json:"visited_countries,omitempty"`
-}
-
-// toPersonResponse converts a domain.Person (from the service layer) to a PersonResponse DTO.
-func toPersonResponse(p domain.Person) *PersonResponse {
-	return &PersonResponse{
-		ID:        p.ID().String(),
-		FirstName: p.FirstName(),
-		LastName:  p.LastName(),
-		Email:     p.Email(),
-		DOB:       p.DOB().UTC().Format(time.RFC3339Nano),
 	}
 }
 

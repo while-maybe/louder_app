@@ -1,4 +1,4 @@
-package stdlibapiadapter
+package personadapter
 
 import (
 	"encoding/json"
@@ -11,8 +11,6 @@ import (
 
 	"github.com/gofrs/uuid/v5"
 )
-
-// structs and other helpers are defined in person_post_handler.go (same package)
 
 // HandleGetPersonByID handles get requests to /person
 func (h *PersonHandler) HandleGetPersonByID(w http.ResponseWriter, r *http.Request) {

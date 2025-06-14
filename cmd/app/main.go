@@ -15,8 +15,13 @@ import (
 	// sqlxadapter "louder/internal/adapters/driven/db/sqlx_adapter"
 	dbdriven "louder/internal/adapters/driven/mock_db"
 	apidriving "louder/internal/adapters/driving/api_provider/stdlib"
+	stdlibapiadapter "louder/internal/adapters/driving/api_provider/stdlib"
+	"louder/internal/adapters/driving/api_provider/stdlib/messageadapter"
+	"louder/internal/adapters/driving/api_provider/stdlib/personadapter"
+	"louder/internal/adapters/driving/api_provider/stdlib/randomnumberadapter"
 	coreservice "louder/internal/core/service"
-	randomnumber "louder/internal/core/service/randomnumbers"
+	"louder/internal/core/service/randomnumbers"
+
 	"louder/pkg/config"
 )
 
@@ -61,35 +66,34 @@ func main() {
 		log.Fatalf("error cannot instantiate DB via Bun")
 	}
 	// the rest is done via SQLx
-	// peopleRepo, err := sqlxadapter.NewSQLxPersonRepo(db)
+	// personRepo, err := sqlxadapter.NewSQLxPersonRepo(db)
 	// if err != nil {
 	// 	log.Fatalf("error cannot instantiate DB via SQLx")
 	// }
 
 	// instantiate core app services
 	messageService := coreservice.NewMessageService(dataRepo)
-	randomNumberService := randomnumber.NewRandNumberService(randomGen)
-	// dice roll has been defined on same Service as randomRumber
-	diceRollService := randomnumber.NewDiceRollService(randomGen)
-
+	randomNumberService := randomnumbers.NewRandNumberService(randomGen)
+	diceRollService := randomnumbers.NewDiceRollService(randomGen)
 	// instantiate single Person get via Bun
 	singlePostService := coreservice.NewPersonService(singlePostRepo)
 	// instantiate Person core app service
-	// peopleService := coreservice.NewPersonService(peopleRepo)
+	// personService := coreservice.NewPersonService(personRepo)
 
 	// instantiate driving adapters
-	randomNumberHandler := apidriving.NewRandomNumberHandler(randomNumberService)
-	diceRollHandler := apidriving.NewRandomDiceHandler(diceRollService)
-	messageHandler := apidriving.NewMessageHandler(messageService)
+	randomNumberHandler := randomnumberadapter.NewRandomNumberHandler(randomNumberService)
+	diceRollHandler := randomnumberadapter.NewRandomDiceHandler(diceRollService)
+	messageHandler := messageadapter.NewMessageHandler(messageService)
 
 	// for now with only the POST user Handler
-	singlePostHandler := apidriving.NewPersonHandler(singlePostService)
+	singlePostHandler := personadapter.NewPersonHandler(singlePostService)
+	// peopleHandler :=
 
 	// and everything else will go here
 	// var _ *coreservice.personServiceImpl = peopleService
 
 	// instantiate router
-	router := apidriving.NewRouter(randomNumberHandler, diceRollHandler, messageHandler, singlePostHandler)
+	router := stdlibapiadapter.NewRouter(randomNumberHandler, diceRollHandler, messageHandler, singlePostHandler)
 
 	// wrap the router in a timeout handler - every incoming request will have a 5 sec deadline
 	timeoutDuration := 5 * time.Second

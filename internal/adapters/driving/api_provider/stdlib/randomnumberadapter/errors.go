@@ -1,4 +1,4 @@
-package stdlibapiadapter
+package randomnumberadapter
 
 import "errors"
 
