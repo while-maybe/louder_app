@@ -1,6 +1,4 @@
-// Interfaces that the core application service will use to interact with external systems (things the application "drives"). Example: item_repository.go
-
-package drivenports
+package messagecore
 
 import "louder/internal/core/domain"
 

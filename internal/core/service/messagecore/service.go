@@ -1,19 +1,17 @@
 // Implements the driving ports. Contains the core application logic. It depends on driven port interfaces, not concrete implementations. This is key for DI.
-package service
+package messagecore
 
 import (
 	"log"
 	"louder/internal/core/domain"
-	drivenports "louder/internal/core/ports/driven" // depends on driven port - dependencies
-	drivingports "louder/internal/core/ports/driving"
 )
 
 type messageServiceImpl struct {
-	messageRepo drivenports.MessageWithTimeRepository // Injected dependency
+	messageRepo MessageWithTimeRepository // Injected dependency
 }
 
 // NewMessageService is the constructor for messageServiceImpl
-func NewMessageService(db drivenports.MessageWithTimeRepository) drivingports.MessageService { // returns the driving port interface
+func NewMessageService(db MessageWithTimeRepository) MessageService { // returns the driving port interface
 	return &messageServiceImpl{
 		messageRepo: db,
 	}

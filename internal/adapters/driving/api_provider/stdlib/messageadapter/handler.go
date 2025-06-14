@@ -4,7 +4,8 @@ import (
 	"encoding/json"
 	"log"
 	"louder/internal/core/domain"
-	drivingports "louder/internal/core/ports/driving"
+	"louder/internal/core/service/messagecore"
+
 	"net/http"
 )
 
@@ -15,7 +16,7 @@ type MessageResponse struct {
 // Message handler
 
 type MessageHandler struct {
-	MessageService drivingports.MessageService // injected core service
+	MessageService messagecore.MessageService // injected core service
 }
 
 func (h *MessageHandler) RegisterRoutes(mux *http.ServeMux) {
@@ -25,7 +26,7 @@ func (h *MessageHandler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc(http.MethodGet+" "+NewMessageRoute, h.HandleGetMessage)
 }
 
-func NewMessageHandler(service drivingports.MessageService) *MessageHandler {
+func NewMessageHandler(service messagecore.MessageService) *MessageHandler {
 	return &MessageHandler{MessageService: service}
 }
 

@@ -62,7 +62,7 @@ func (pid PersonID) Value() (driver.Value, error) {
 }
 
 // isNil checks if the PersonID is a "zero" or nil UUID
-func (pid PersonID) isNil() bool {
+func (pid PersonID) IsNil() bool {
 	return uuid.UUID(pid).IsNil()
 }
 

@@ -1,4 +1,4 @@
-package drivingports
+package messagecore
 
 import "louder/internal/core/domain"
 

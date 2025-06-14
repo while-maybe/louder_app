@@ -19,7 +19,7 @@ import (
 	"louder/internal/adapters/driving/api_provider/stdlib/messageadapter"
 	"louder/internal/adapters/driving/api_provider/stdlib/personadapter"
 	"louder/internal/adapters/driving/api_provider/stdlib/randomnumberadapter"
-	coreservice "louder/internal/core/service"
+	"louder/internal/core/service/messagecore"
 	"louder/internal/core/service/personcore"
 	"louder/internal/core/service/randomnumbers"
 
@@ -73,7 +73,7 @@ func main() {
 	// }
 
 	// instantiate core app services
-	messageService := coreservice.NewMessageService(dataRepo)
+	messageService := messagecore.NewMessageService(dataRepo)
 	randomNumberService := randomnumbers.NewRandNumberService(randomGen)
 	diceRollService := randomnumbers.NewDiceRollService(randomGen)
 	// instantiate single Person get via Bun
