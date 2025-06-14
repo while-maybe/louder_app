@@ -4,17 +4,17 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	drivingports "louder/internal/core/ports/driving"
+	"louder/internal/core/service/personcore"
 	"net/http"
 )
 
 // PersonHandler handles HTTP requests related to person entities
 type PersonHandler struct {
-	service drivingports.PersonService // dependency on the Person Service Interface
+	service personcore.PersonService // dependency on the Person Service Interface
 }
 
 // NewPersonHandler creates a new PersonHandler
-func NewPersonHandler(srv drivingports.PersonService) *PersonHandler {
+func NewPersonHandler(srv personcore.PersonService) *PersonHandler {
 	return &PersonHandler{
 		service: srv,
 	}

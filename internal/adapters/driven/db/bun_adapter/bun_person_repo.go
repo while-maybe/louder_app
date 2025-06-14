@@ -8,7 +8,7 @@ import (
 	"log"
 	dbcommon "louder/internal/adapters/driven/db/db_common"
 	"louder/internal/core/domain"
-	drivenports "louder/internal/core/ports/driven"
+	"louder/internal/core/service/personcore"
 
 	"github.com/gofrs/uuid/v5"
 	"github.com/uptrace/bun"
@@ -24,7 +24,7 @@ const (
 )
 
 // ensure BunPersonRepo implements the drivenports.PersonRepository interface with (won't compile otherwise)
-var _ drivenports.PersonRepository = (*BunPersonRepo)(nil)
+var _ personcore.PersonRepository = (*BunPersonRepo)(nil)
 
 func NewBunPersonRepo(sqldb *sql.DB) (*BunPersonRepo, error) {
 	db := bun.NewDB(sqldb, sqlitedialect.New())

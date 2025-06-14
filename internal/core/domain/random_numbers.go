@@ -34,18 +34,3 @@ func (d *RandomDice) ValidateDiceParameters(numDice, sides uint) error {
 
 	return nil
 }
-
-// // Roll returns the result of a dice roll as a slice of numbers
-// func (rd *RandomDice) RollDice() []uint {
-// 	// remember returning a slice happens by reference, recipient could change the it
-// 	// we can ensure protection with a defensive copy
-// 	rollCopy := make([]uint, len(rd.Roll), len(rd.Roll))
-// 	copy(rollCopy, rd.Roll)
-
-// 	return rollCopy
-// }
-
-// // Sum returns the sum of all dice points in the roll
-// func (rd *RandomDice) Sum() uint {
-// 	return rd.RollSum
-// }

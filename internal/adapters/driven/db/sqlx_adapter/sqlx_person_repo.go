@@ -8,7 +8,7 @@ import (
 	"log"
 	dbcommon "louder/internal/adapters/driven/db/db_common"
 	"louder/internal/core/domain"
-	drivenports "louder/internal/core/ports/driven"
+	"louder/internal/core/service/personcore"
 
 	"github.com/gofrs/uuid"
 	"github.com/jmoiron/sqlx"
@@ -25,7 +25,7 @@ type SQLxPersonRepo struct {
 }
 
 // ensure SQLxPersonRepo implements the drivenports.PersonRepository interface with (won't compile otherwise)
-var _ drivenports.PersonRepository = (*SQLxPersonRepo)(nil)
+var _ personcore.PersonRepository = (*SQLxPersonRepo)(nil)
 
 func NewSQLxPersonRepo(sqldb *sql.DB) (*SQLxPersonRepo, error) {
 

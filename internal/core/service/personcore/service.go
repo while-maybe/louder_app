@@ -13,7 +13,7 @@
 //        | (is implemented by...)
 // [Driven Adapter (e.g., PostgresMessageRepository)]
 
-package service
+package personcore
 
 import (
 	"context"
@@ -22,24 +22,23 @@ import (
 	"log"
 	dbcommon "louder/internal/adapters/driven/db/db_common"
 	"louder/internal/core/domain"
-	drivenports "louder/internal/core/ports/driven"
-	drivingports "louder/internal/core/ports/driving"
+	"louder/internal/core/service"
 	"louder/pkg/types"
 
 	"github.com/gofrs/uuid/v5"
 )
 
 type personServiceImpl struct {
-	personRepo drivenports.PersonRepository
+	personRepo PersonRepository
 }
 
-func NewPersonService(db drivenports.PersonRepository) *personServiceImpl {
+func NewPersonService(db PersonRepository) *personServiceImpl {
 	return &personServiceImpl{
 		personRepo: db,
 	}
 }
 
-var _ drivingports.PersonService = (*personServiceImpl)(nil)
+var _ PersonService = (*personServiceImpl)(nil)
 
 // GetAllPersons receives the request from driving port and processes, dispatches the data
 // func (ps *personServiceImpl) GetAllPersons(ctx context.Context) ([]domain.Person, error) {
@@ -56,19 +55,18 @@ var _ drivingports.PersonService = (*personServiceImpl)(nil)
 func (ps *personServiceImpl) CreatePerson(ctx context.Context, firstName, lastName, email string) (*domain.Person, error) {
 	// some basic validation but more complex logic in domain if needed
 	if firstName == "" {
-		return nil, fmt.Errorf("%w: first name cannot be empty", ErrInvalidPersonData)
+		return nil, fmt.Errorf("%w: first name cannot be empty", service.ErrInvalidPersonData)
 	}
 	if lastName == "" {
-		return nil, fmt.Errorf("%w: last name cannot be empty", ErrInvalidPersonData)
+		return nil, fmt.Errorf("%w: last name cannot be empty", service.ErrInvalidPersonData)
 	}
 	if email == "" { // More robust email validation is usually needed
-		return nil, fmt.Errorf("%w: email cannot be empty", ErrInvalidPersonData)
+		return nil, fmt.Errorf("%w: email cannot be empty", service.ErrInvalidPersonData)
 	}
 
 	// Business Rules (Example: Check for duplicate email before attempting to create)
 	//    This might involve a repository call.
-	//    Note: Some prefer to let the DB handle unique constraints and catch the error,
-	//    others prefer a proactive check. A proactive check can give a cleaner error.
+	//    Note: Some prefer to let the DB handle unique constraints and catch the error,  others prefer a proactive check. A proactive check can give a cleaner error.
 	//    existingPerson, err := ps.personRepo.FindByEmail(ctx, email) // Assume FindByEmail exists
 	//    if err != nil && !errors.Is(err, driven.ErrPersonNotFound) { // driven.ErrPersonNotFound or your repo's equivalent
 	//        log.Printf("ERROR CreatePerson - checking for existing email '%s': %v", email, err)
@@ -84,7 +82,7 @@ func (ps *personServiceImpl) CreatePerson(ctx context.Context, firstName, lastNa
 	if err != nil {
 		// This error likely means the data failed domain-level validation within NewPerson
 		log.Printf("error CreatePerson - domain.NewPerson: %v", err)
-		return nil, fmt.Errorf("%w: %w", ErrInvalidPersonData, err) // Wrap domain error
+		return nil, fmt.Errorf("%w: %w", service.ErrInvalidPersonData, err) // Wrap domain error
 	}
 
 	// save the newly created person to the repo
@@ -110,7 +108,7 @@ func (ps *personServiceImpl) CreatePerson(ctx context.Context, firstName, lastNa
 func (ps *personServiceImpl) GetPersonByID(ctx context.Context, pid domain.PersonID) (*domain.Person, error) {
 	// TODO get some proper validation going lazy! (regex?)
 	if uuid.UUID(pid).IsNil() {
-		return nil, fmt.Errorf("%w: id cannot be nil", ErrInvalidPersonData)
+		return nil, fmt.Errorf("%w: id cannot be nil", service.ErrInvalidPersonData)
 	}
 
 	savedPerson, err := ps.personRepo.GetByID(ctx, pid)
