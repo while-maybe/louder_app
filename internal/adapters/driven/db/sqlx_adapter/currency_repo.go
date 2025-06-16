@@ -37,15 +37,13 @@ func (r *CurrencyRepo) Save(ctx context.Context, currency *domain.Currency) (*do
 		return nil, dbcommon.ErrConvertNilCurrency
 	}
 
-	// write the query
-	query := `
-		INSERT INTO currency (code, name)
-		VALUES (:code, :name)
-		ON CONFLICT(code) DO UPDATE SET
-			name = excluded.name;`
+	query, err := GetQuery("SaveCurrency")
+	if err != nil {
+		return nil, fmt.Errorf("SaveCurrency query retrieval: %w", err)
+	}
 
 	// run the query and get the result (and check for errors)
-	_, err := r.db.NamedExecContext(ctx, query, sqlxModel)
+	_, err = r.db.NamedExecContext(ctx, query, sqlxModel)
 	if err != nil {
 		return nil, fmt.Errorf("%w for currency code %s: %s", dbcommon.ErrSQLxSaveCurrency, currency.Code(), currency.Name())
 	}
@@ -69,15 +67,14 @@ func (r *CurrencyRepo) GetByID(ctx context.Context, cc domain.CurrencyCode) (*do
 		return nil, dbcommon.ErrNoCurrencyCode
 	}
 
-	query := `
-		SELECT code, name
-		FROM currency
-		WHERE code = ?;
-	`
+	query, err := GetQuery("GetCurrencyByCode")
+	if err != nil {
+		return nil, fmt.Errorf("GetCurrencyByCode query retrieval: %w", err)
+	}
 
 	var sqlxModel CurrencyModel
 
-	err := r.db.GetContext(ctx, &sqlxModel, query, givenCode)
+	err = r.db.GetContext(ctx, &sqlxModel, query, givenCode)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			// no results
@@ -96,10 +93,14 @@ func (r *CurrencyRepo) GetByID(ctx context.Context, cc domain.CurrencyCode) (*do
 
 func (r *CurrencyRepo) CountAll(ctx context.Context) (int, error) {
 	// the count will include entries with NULL, if an issue use SELECT(code)
-	query := `SELECT COUNT(*) FROM currency`
+
+	query, err := GetQuery("CountAllCurrencies")
+	if err != nil {
+		return 0, fmt.Errorf("CountAllCurrencies query retrieval: %w", err)
+	}
 
 	var count int
-	err := r.db.GetContext(ctx, &count, query)
+	err = r.db.GetContext(ctx, &count, query)
 
 	if err != nil {
 		return 0, fmt.Errorf("%w: counting all currencies: %w", dbcommon.ErrSQLxQueryFailed, err)
@@ -122,8 +123,11 @@ func (r *CurrencyRepo) GetRandom(ctx context.Context) (*domain.Currency, error) 
 
 	randomOffset := rand.IntN(currenciesCount)
 
-	// Get a row at a specific offset
-	query := `SELECT code, name FROM currency LIMIT 1 OFFSET ?`
+	query, err := GetQuery("CountAllCurrencies")
+	if err != nil {
+		return nil, fmt.Errorf("CountAllCurrencies query retrieval: %w", err)
+	}
+
 	queryResult := r.db.QueryRowContext(ctx, query, randomOffset)
 
 	var row *CurrencyModel
@@ -145,10 +149,8 @@ func (r *CurrencyRepo) GetRandom(ctx context.Context) (*domain.Currency, error) 
 	return result, nil
 }
 
-// var sqlxModel SQLxModelCurrency
+// TODO implement remaining port methods
+// GetByName(ctx context.Context, name string) (*domain.Currency, error)
 
-// type Repository interface {
-
-// 	// GetByName(ctx context.Context, name string) (*domain.Currency, error)
-// 	// Search(ctx context.Context, terms string) ([]*domain.Currency, error) // get a list of countries when search terms are given, like Google?
-// }
+// get a list of countries when search terms are given, like Google?
+// Search(ctx context.Context, terms string) ([]*domain.Currency, error)
