@@ -1,14 +1,15 @@
 package sqlxadapter
 
 import (
+	"errors"
 	"fmt"
 	dbcommon "louder/internal/adapters/driven/db/db_common"
 	"louder/internal/core/domain"
 	"louder/pkg/types"
 )
 
-const (
-	ErrConvertIDfromDB = dbcommon.Error("error converting person ID from DB")
+var (
+	ErrConvertIDfromDB = errors.New("error converting person ID from DB")
 )
 
 // SQLxPersonModel is the data structure used for interacting with the 'person' table using SQLx

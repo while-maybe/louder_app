@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	dbcommon "louder/internal/adapters/driven/db/db_common"
 	"os"
 	"path/filepath"
 
@@ -16,12 +15,12 @@ import (
 )
 
 // Sentinel errors for unit testing later
-const (
-	ErrDBFolder        = dbcommon.Error("failed to create DB folder")
-	ErrDBOpen          = dbcommon.Error("failed to open sqlite3 DB")
-	ErrDBPing          = dbcommon.Error("failed to ping sqlite3 DB")
-	ErrMigrationDriver = dbcommon.Error("failed to create migration driver")
-	ErrMigrationRun    = dbcommon.Error("failed to run migrations")
+var (
+	ErrDBFolder        = errors.New("failed to create DB folder")
+	ErrDBOpen          = errors.New("failed to open sqlite3 DB")
+	ErrDBPing          = errors.New("failed to ping sqlite3 DB")
+	ErrMigrationDriver = errors.New("failed to create migration driver")
+	ErrMigrationRun    = errors.New("failed to run migrations")
 )
 
 func Init(dbFilePath string) (*sql.DB, error) {

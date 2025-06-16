@@ -14,10 +14,10 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-const (
-	ErrSqlxSavePerson = dbcommon.Error("error SQLx save person")
+var (
+	ErrSqlxSavePerson = errors.New("error SQLx save person")
 
-	// ErrSaveNoRowsAffected = Error("error SQLx can't get rows affected")
+	// ErrSaveNoRowsAffected = errors.New("error SQLx can't get rows affected")
 )
 
 type PersonRepo struct {

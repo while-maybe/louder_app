@@ -19,8 +19,8 @@ type BunPersonRepo struct {
 	db *bun.DB
 }
 
-const (
-	ErrBunSavePerson = dbcommon.Error("error Bun save person")
+var (
+	ErrBunSavePerson = errors.New("error Bun save person")
 )
 
 // ensure BunPersonRepo implements the drivenports.PersonRepository interface with (won't compile otherwise)

@@ -2,14 +2,6 @@ package dbcommon
 
 import "errors"
 
-type Error string
-
-func (e Error) Error() string {
-	return string(e)
-}
-
-// TODO normalise all errors to errors.New("") convention
-
 // errors for person
 var (
 	ErrHydrateWithNil   = errors.New("error attempted to hydrate person without data")
