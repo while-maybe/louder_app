@@ -9,7 +9,6 @@ import (
 	dbcommon "louder/internal/adapters/driven/db/dbcommon"
 	"louder/internal/core/domain"
 	"louder/internal/core/service/currencycore"
-	"math/rand/v2"
 
 	"github.com/jmoiron/sqlx"
 )
@@ -45,7 +44,7 @@ func (r *CurrencyRepo) Save(ctx context.Context, currency *domain.Currency) (*do
 	// run the query and get the result (and check for errors)
 	_, err = r.db.NamedExecContext(ctx, query, sqlxModel)
 	if err != nil {
-		return nil, fmt.Errorf("%w for currency code %s: %s", dbcommon.ErrSQLxSaveCurrency, currency.Code(), currency.Name())
+		return nil, fmt.Errorf("%w for currency code %s: %s: %v", dbcommon.ErrSQLxSaveCurrency, currency.Code(), currency.Name(), err)
 	}
 
 	// checking for rows affected == 0 might not be great here as the query has a DO UPDATE SET, so if an upsert occurs, rowsaffected would have returned 0 and that is not an erorr
@@ -54,7 +53,7 @@ func (r *CurrencyRepo) Save(ctx context.Context, currency *domain.Currency) (*do
 
 	createdCurrency, err = r.GetByID(ctx, currency.Code())
 	if err != nil {
-		return nil, fmt.Errorf("%w for currency code %s: %w", dbcommon.ErrSQLxSavedButNotInDB, currency.Code(), err)
+		return nil, fmt.Errorf("%w for currency code %s: %v", dbcommon.ErrSQLxSavedButNotInDB, currency.Code(), err)
 	}
 	log.Printf("Currency %s inserted/updated with success", currency.Code())
 
@@ -69,7 +68,7 @@ func (r *CurrencyRepo) GetByID(ctx context.Context, cc domain.CurrencyCode) (*do
 
 	query, err := GetQuery("GetCurrencyByCode")
 	if err != nil {
-		return nil, fmt.Errorf("GetCurrencyByCode query retrieval: %w", err)
+		return nil, fmt.Errorf("%w: querying currency by code %s: %v", dbcommon.ErrSQLxQueryFailed, givenCode, err)
 	}
 
 	var sqlxModel CurrencyModel
@@ -78,7 +77,7 @@ func (r *CurrencyRepo) GetByID(ctx context.Context, cc domain.CurrencyCode) (*do
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			// no results
-			return nil, fmt.Errorf("%w for currency code %s: %w", dbcommon.ErrSQLxNotFound, givenCode, err)
+			return nil, fmt.Errorf("%w for currency code %s: %v", dbcommon.ErrSQLxNotFound, givenCode, err)
 		}
 		// query fails
 		return nil, fmt.Errorf("%w: %w", dbcommon.ErrSQLxQueryFailed, err)
@@ -86,7 +85,7 @@ func (r *CurrencyRepo) GetByID(ctx context.Context, cc domain.CurrencyCode) (*do
 
 	retrievedCurrency, err := sqlxModel.toDomainCurrency()
 	if err != nil {
-		return nil, fmt.Errorf("%w for currency %s: %w", dbcommon.ErrConvertToCurrency, givenCode, err)
+		return nil, fmt.Errorf("%w for currency %s: %v", dbcommon.ErrConvertToCurrency, givenCode, err)
 	}
 	return retrievedCurrency, nil
 }
@@ -103,47 +102,28 @@ func (r *CurrencyRepo) CountAll(ctx context.Context) (int, error) {
 	err = r.db.GetContext(ctx, &count, query)
 
 	if err != nil {
-		return 0, fmt.Errorf("%w: counting all currencies: %w", dbcommon.ErrSQLxQueryFailed, err)
+		return 0, fmt.Errorf("%w: counting all currencies: %v", dbcommon.ErrSQLxQueryFailed, err)
 	}
 
 	return count, nil
 }
 
 func (r *CurrencyRepo) GetRandom(ctx context.Context) (*domain.Currency, error) {
-	// I don't like the idea of SELECT code, name FROM currency ORDER BY RANDOM() LIMIT 1;
-	// Postgres would have random selection so considering this is for sqlite, I'll accept it
-
-	currenciesCount, err := r.CountAll(ctx)
+	query, err := GetQuery("GetRandomCurrency")
 	if err != nil {
-		return nil, err
-	}
-	if currenciesCount == 0 {
-		return nil, fmt.Errorf("%w: no currencies available in the database", dbcommon.ErrSQLxNotFound)
+		return nil, fmt.Errorf("GetRandomCurrency query retrieval: %w", err)
 	}
 
-	randomOffset := rand.IntN(currenciesCount)
-
-	query, err := GetQuery("CountAllCurrencies")
+	var row CurrencyModel // not a pointer
+	err = r.db.GetContext(ctx, &row, query)
 	if err != nil {
-		return nil, fmt.Errorf("CountAllCurrencies query retrieval: %w", err)
-	}
-
-	queryResult := r.db.QueryRowContext(ctx, query, randomOffset)
-
-	var row *CurrencyModel
-
-	err = queryResult.Scan(row)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, fmt.Errorf("%w: %w", dbcommon.ErrSQLxNotFound, err)
-		}
-		return nil, fmt.Errorf("%w: %w", dbcommon.ErrSQLxQueryFailed, err)
+		return nil, fmt.Errorf("%w: getting random currency: %v", dbcommon.ErrSQLxQueryFailed, err)
 	}
 
 	// convert to a domain Currency
 	result, err := row.toDomainCurrency()
 	if err != nil {
-		return nil, fmt.Errorf("%w: %w", dbcommon.ErrConvertToCurrency, err)
+		return nil, fmt.Errorf("%w: converting random currency: %v", dbcommon.ErrConvertToCurrency, err)
 	}
 
 	return result, nil

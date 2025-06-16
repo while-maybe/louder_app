@@ -17,7 +17,7 @@ SELECT COUNT(*) FROM currency;
 
 -- name: GetRandomCurrency
 -- Selects a random currency from the table (SQLite specific).
-SELECT code, name FROM currency LIMIT 1 OFFSET ?
+SELECT code, name FROM currency ORDER BY RANDOM() LIMIT 1;
 
 -- name: ListAllCurrencies
 -- Selects all currencies.
