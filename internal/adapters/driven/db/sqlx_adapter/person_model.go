@@ -3,7 +3,7 @@ package sqlxadapter
 import (
 	"errors"
 	"fmt"
-	dbcommon "louder/internal/adapters/driven/db/db_common"
+	dbcommon "louder/internal/adapters/driven/db/dbcommon"
 	"louder/internal/core/domain"
 	"louder/pkg/types"
 )
