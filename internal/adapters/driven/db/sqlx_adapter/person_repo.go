@@ -20,20 +20,20 @@ const (
 	// ErrSaveNoRowsAffected = Error("error SQLx can't get rows affected")
 )
 
-type SQLxPersonRepo struct {
+type PersonRepo struct {
 	db *sqlx.DB
 }
 
 // ensure SQLxPersonRepo implements the drivenports.PersonRepository interface with (won't compile otherwise)
-var _ personcore.PersonRepository = (*SQLxPersonRepo)(nil)
+var _ personcore.PersonRepository = (*PersonRepo)(nil)
 
-func NewSQLxPersonRepo(sqldb *sql.DB) (*SQLxPersonRepo, error) {
+func NewSQLxPersonRepo(sqldb *sql.DB) (*PersonRepo, error) {
 
 	db := sqlx.NewDb(sqldb, "sqlite3")
-	return &SQLxPersonRepo{db: db}, nil
+	return &PersonRepo{db: db}, nil
 }
 
-func (spr *SQLxPersonRepo) Save(ctx context.Context, person *domain.Person) (*domain.Person, error) {
+func (spr *PersonRepo) Save(ctx context.Context, person *domain.Person) (*domain.Person, error) {
 
 	// convert from domain.Person to SQLxPersonModel first
 	sqlxModel := toSQLxModelPerson(person)
@@ -64,7 +64,7 @@ func (spr *SQLxPersonRepo) Save(ctx context.Context, person *domain.Person) (*do
 		log.Printf("SQLx: Warning - couldn't get rows affected for ID: %s, %v", person.ID().String(), err)
 
 	case rowsAffected == 0:
-		log.Printf("SQLx: Info - 0 rows affected for ID: %s. Identical to record?\n", person.ID().String())
+		log.Printf("SQLx: Info - 0 rows affected for ID: %s. Existing record?\n", person.ID().String())
 
 	default:
 		log.Printf("SQLx: Successfully saved/updated person ID %s. Fetching current state.", person.ID().String())
@@ -76,7 +76,7 @@ func (spr *SQLxPersonRepo) Save(ctx context.Context, person *domain.Person) (*do
 	return createdPerson, nil
 }
 
-func (spr *SQLxPersonRepo) GetByID(ctx context.Context, pid domain.PersonID) (*domain.Person, error) {
+func (spr *PersonRepo) GetByID(ctx context.Context, pid domain.PersonID) (*domain.Person, error) {
 
 	if uuid.UUID(pid).IsNil() {
 		return nil, dbcommon.ErrEmptyID
@@ -106,13 +106,13 @@ func (spr *SQLxPersonRepo) GetByID(ctx context.Context, pid domain.PersonID) (*d
 	// convert from SQLxPersonModel to domain.Person to
 	retrievedPerson, err := sqlxModel.toDomainPerson()
 	if err != nil {
-		return nil, fmt.Errorf("%w, ID: %s, %w", dbcommon.ErrConvertPerson, pid.String(), err)
+		return nil, fmt.Errorf("%w, ID: %s, %w", dbcommon.ErrConvertToPerson, pid.String(), err)
 	}
 
 	return retrievedPerson, nil
 }
 
-func (spr *SQLxPersonRepo) GetAll(ctx context.Context) ([]domain.Person, error) {
+func (spr *PersonRepo) GetAll(ctx context.Context) ([]domain.Person, error) {
 	query := `
 		SELECT id, first_name, last_name, email, dob
 		FROM person;`
@@ -131,7 +131,7 @@ func (spr *SQLxPersonRepo) GetAll(ctx context.Context) ([]domain.Person, error) 
 
 		switch {
 		case err != nil:
-			log.Printf("GetAllPersons: %v (ID: %s): %v. Skipping.", dbcommon.ErrConvertPerson, dbModels[i].ID.String(), err)
+			log.Printf("GetAllPersons: %v (ID: %s): %v. Skipping.", dbcommon.ErrConvertToPerson, dbModels[i].ID.String(), err)
 		case domainPerson == nil:
 			log.Printf("GetAllPersons: %v (ID: %s). Skipping.", dbcommon.ErrNilDomainPerson, dbModels[i].ID.String())
 		default:

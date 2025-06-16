@@ -1,4 +1,4 @@
-package randomnumbers
+package randomnumberscore
 
 import "louder/internal/core/domain"
 

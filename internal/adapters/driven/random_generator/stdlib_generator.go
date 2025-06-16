@@ -3,13 +3,13 @@ package randomgenerator
 import (
 	"fmt"
 	"louder/internal/core/domain"
-	"louder/internal/core/service/randomnumbers"
+	"louder/internal/core/service/randomnumberscore"
 	"math/rand/v2"
 )
 
 type StdLibGenerator struct{}
 
-var _ randomnumbers.Repository = (*StdLibGenerator)(nil)
+var _ randomnumberscore.Repository = (*StdLibGenerator)(nil)
 
 func NewStdLibGenerator() *StdLibGenerator {
 	return &StdLibGenerator{}

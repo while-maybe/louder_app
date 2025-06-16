@@ -97,7 +97,7 @@ func (bpr *BunPersonRepo) GetByID(ctx context.Context, pid domain.PersonID) (*do
 	retrievedPerson, err := bunModel.toDomainPerson()
 	if err != nil {
 		log.Printf("error BunPersonRepo.GetByID - Failed to convert BunModelPerson to domain.Person for ID '%s'. Model: %+v. Error: %v", pid.String(), bunModel, err)
-		return nil, fmt.Errorf("%w, ID: %s, %w", dbcommon.ErrConvertPerson, pid.String(), err)
+		return nil, fmt.Errorf("%w, ID: %s, %w", dbcommon.ErrConvertToPerson, pid.String(), err)
 	}
 
 	return retrievedPerson, nil
@@ -119,7 +119,7 @@ func (bpr *BunPersonRepo) GetAll(ctx context.Context) ([]domain.Person, error) {
 
 		switch {
 		case err != nil:
-			log.Printf("GetAllPersons: %v (ID: %s): %v. Skipping.", dbcommon.ErrConvertPerson, dbModels[i].ID.String(), err)
+			log.Printf("GetAllPersons: %v (ID: %s): %v. Skipping.", dbcommon.ErrConvertToPerson, dbModels[i].ID.String(), err)
 		case domainPerson == nil:
 			log.Printf("GetAllPersons: %v (ID: %s). Skipping.", dbcommon.ErrNilDomainPerson, dbModels[i].ID.String())
 		default:

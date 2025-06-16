@@ -21,7 +21,7 @@ import (
 	"louder/internal/adapters/driving/api_provider/stdlib/randomnumberadapter"
 	"louder/internal/core/service/messagecore"
 	"louder/internal/core/service/personcore"
-	"louder/internal/core/service/randomnumbers"
+	"louder/internal/core/service/randomnumberscore"
 
 	"louder/pkg/config"
 )
@@ -74,8 +74,8 @@ func main() {
 
 	// instantiate core app services
 	messageService := messagecore.NewMessageService(dataRepo)
-	randomNumberService := randomnumbers.NewRandNumberService(randomGen)
-	diceRollService := randomnumbers.NewDiceRollService(randomGen)
+	randomNumberService := randomnumberscore.NewRandNumberService(randomGen)
+	diceRollService := randomnumberscore.NewDiceRollService(randomGen)
 	// instantiate single Person get via Bun
 	singlePostService := personcore.NewPersonService(singlePostRepo)
 	// instantiate Person core app service

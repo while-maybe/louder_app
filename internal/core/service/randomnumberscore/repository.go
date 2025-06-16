@@ -1,6 +1,6 @@
 // Interfaces that the core application service will use to interact with external systems (things the application "drives"). Example: item_repository.go
 
-package randomnumbers
+package randomnumberscore
 
 import "louder/internal/core/domain"
 

@@ -6,7 +6,7 @@ import (
 	"log"
 	stdlibapiadapter "louder/internal/adapters/driving/api_provider/stdlib"
 	"louder/internal/core/domain"
-	"louder/internal/core/service/randomnumbers"
+	"louder/internal/core/service/randomnumberscore"
 	"strconv"
 	"strings"
 
@@ -15,19 +15,19 @@ import (
 
 // RandomNumber Handler
 type RandomNumberHandler struct {
-	RandomNumberService randomnumbers.Port // inject core service
+	RandomNumberService randomnumberscore.Port // inject core service
 }
 
 // RandomDice Handler
 type DiceRollHandler struct {
-	RandomDiceService randomnumbers.Port
+	RandomDiceService randomnumberscore.Port
 }
 
-func NewRandomNumberHandler(service randomnumbers.Port) *RandomNumberHandler {
+func NewRandomNumberHandler(service randomnumberscore.Port) *RandomNumberHandler {
 	return &RandomNumberHandler{RandomNumberService: service}
 }
 
-func NewRandomDiceHandler(service randomnumbers.Port) *DiceRollHandler {
+func NewRandomDiceHandler(service randomnumberscore.Port) *DiceRollHandler {
 	return &DiceRollHandler{RandomDiceService: service}
 }
 

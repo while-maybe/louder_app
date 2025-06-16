@@ -14,8 +14,8 @@ type Country struct {
 }
 
 // NewCountry creates a Country object
-func NewCountry(code CountryCode, name string, curr []CurrencyCode, wikidataid WikiCode) Country {
-	return Country{
+func NewCountry(code CountryCode, name string, curr []CurrencyCode, wikidataid WikiCode) *Country {
+	return &Country{
 		code:       code,
 		name:       name,
 		currencies: curr,
@@ -39,6 +39,6 @@ func (c Country) Code() CountryCode {
 }
 
 // Currency returns a slice of Currency codes used in the Country
-func (c Country) Currency() []CurrencyCode {
+func (c Country) Currencies() []CurrencyCode {
 	return c.currencies
 }

@@ -1,5 +1,5 @@
 // Implements the driving ports. Contains the core application logic. It depends on driven port interfaces, not concrete implementations. This is key for DI.
-package randomnumbers
+package randomnumberscore
 
 import (
 	"fmt"
