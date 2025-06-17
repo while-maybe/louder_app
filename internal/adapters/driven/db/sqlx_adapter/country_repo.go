@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"log"
 	"louder/internal/adapters/driven/db/dbcommon"
 	"louder/internal/core/domain"
 	"louder/internal/core/service/countrycore"
@@ -26,52 +27,101 @@ func NewCountryRepo(sqldb *sql.DB) (countrycore.Repository, error) {
 	return &CountryRepo{db: db}, nil
 }
 
+// Save writes a (domain object) Country into the DB returning the result of a DB get of the written instance
 func (r *CountryRepo) Save(ctx context.Context, country *domain.Country) (*domain.Country, error) {
+
+	tx, err := r.db.BeginTxx(ctx, nil)
+	if err != nil {
+		return nil, fmt.Errorf("%w: beginning transaction for saving country %s: %v", dbcommon.ErrTransactionBegin, country.Code(), err)
+	}
+
+	// defer a rollback
+	defer func() {
+		// if there was a panic
+		if p := recover(); p != nil {
+			if rbErr := tx.Rollback(); rbErr != nil {
+				log.Printf("ERROR: transaction rollback failed for country %s after error %v: %v", country.Code(), err, rbErr)
+			}
+			panic(p) // repanic anyway
+		}
+		// if an error occurred, rollback
+		if err != nil {
+			if rbErr := tx.Rollback(); rbErr != nil {
+				log.Printf("ERROR: transaction rollback failed for country %s after error %v: %v", country.Code(), err, rbErr)
+			}
+		}
+	}()
+
 	countryModel := toModelCountry(country)
 	if countryModel == nil {
-		return nil, dbcommon.ErrConvertNilCountry
+		err = dbcommon.ErrConvertNilCountry
+		return nil, err
 	}
 
-	query, err := GetQuery("SaveCountry")
+	saveCountryQuery, err := GetQuery("SaveCountry")
 	if err != nil {
-		return nil, fmt.Errorf("SaveCurrency query retrieval: %w", err)
+		err = fmt.Errorf("SaveCurrency query retrieval failed: %w", err)
+		return nil, err
 	}
 
-	_, err = r.db.NamedExecContext(ctx, query, countryModel)
+	_, err = tx.NamedExecContext(ctx, saveCountryQuery, countryModel)
 	if err != nil {
-		return nil, fmt.Errorf("%w for country code %s: %s: %v", dbcommon.ErrSQLxSaveCountry, country.Code(), country.Name(), err)
+		err = fmt.Errorf("%w for country code %s: %s: %v", dbcommon.ErrSQLxSaveCountry, country.Code(), country.Name(), err)
+		return nil, err
 	}
 
-	query, err = GetQuery("SaveCountryCurrencyPair")
+	// delete previous country associations and recreate
+	deleteCountryCurrencyJoinsQuery, err := GetQuery("DeleteCountryCurrencyJoins")
 	if err != nil {
-		return nil, fmt.Errorf("SaveCountryCurrencyPair query retrieval failed: %w", err)
+		err = fmt.Errorf("DeleteCountryCurrencyJoins query retrieval failed: %w", err)
+		return nil, err
 	}
 
-	for _, c := range country.Currencies() {
-		row := struct {
-			CountryCode  domain.CountryCode  `db:"country_code"`
-			CurrencyCode domain.CurrencyCode `db:"currency_code"`
-		}{
-			CountryCode:  country.Code(),
-			CurrencyCode: c,
-		}
-		_, err := r.db.NamedExecContext(ctx, query, row)
+	_, err = tx.NamedExecContext(ctx, deleteCountryCurrencyJoinsQuery, countryModel)
+	if err != nil {
+		err = fmt.Errorf("%w for country code %s: %v", dbcommon.ErrSQLxDeleteJoins, country.Name(), err)
+		return nil, err
+	}
 
+	if len(country.Currencies()) > 0 {
+
+		saveCountryCurrencyPairQuery, err := GetQuery("SaveCountryCurrencyPair")
 		if err != nil {
-			return nil, fmt.Errorf("%w for country/currency pair %s: %s: %v", dbcommon.ErrSQLxSaveCountryCurrency, country.Code(), c.String(), err)
+			return nil, fmt.Errorf("SaveCountryCurrencyPair query retrieval failed: %w", err)
 		}
 
+		for _, c := range country.Currencies() {
+			row := struct {
+				CountryCode  domain.CountryCode  `db:"country_code"`
+				CurrencyCode domain.CurrencyCode `db:"currency_code"`
+			}{
+				CountryCode:  country.Code(),
+				CurrencyCode: c.Code(),
+			}
+			_, err = tx.NamedExecContext(ctx, saveCountryCurrencyPairQuery, row)
+
+			if err != nil {
+				err = fmt.Errorf("%w for country/currency pair %s: %s: %v", dbcommon.ErrSQLxSaveCountryCurrency, country.Code(), c.Code().String(), err)
+				return nil, err
+			}
+		}
 	}
 
-	query, err = GetQuery("GetCountryByCode")
+	if err = tx.Commit(); err != nil {
+		// if commit fails a rollback will be attempted from defer
+		return nil, fmt.Errorf("%w: committing transaction for country %s: %v", dbcommon.ErrTransactionCommit, country.Code(), err)
+	}
+
+	createdCountry, err := r.GetByID(ctx, country.Code())
 	if err != nil {
-		return nil, fmt.Errorf("GetCountryByCode query retrieval failed: %w", err)
+		return nil, fmt.Errorf("%w for country %s: %v", dbcommon.ErrSQLxSavedButNotInDB, country.Name(), err)
 	}
 
-	createdCountry, err := r.GetByID()
-
+	log.Printf("Country %s and its currencies saved/updated successfully", country.Code())
+	return createdCountry, nil
 }
 
+// GetByID returns a Country instance if its country code exists
 func (r *CountryRepo) GetByID(ctx context.Context, cc domain.CountryCode) (*domain.Country, error) {
 	ccStr := cc.String()
 	if ccStr == "" {
@@ -106,10 +156,6 @@ func (r *CountryRepo) GetByID(ctx context.Context, cc domain.CountryCode) (*doma
 		return nil, fmt.Errorf("%w: fetching currencies for country '%s': %v", dbcommon.ErrSQLxQueryFailed, ccStr, err)
 	}
 
-	if cModels == nil {
-		cModels = []CurrencyModel{}
-	}
-
 	retrievedCountry, err := countryModel.toDomainCountry(cModels)
 	if err != nil {
 		return nil, fmt.Errorf("%w for country %s: %v", dbcommon.ErrConvertToCountry, ccStr, err)
@@ -118,7 +164,55 @@ func (r *CountryRepo) GetByID(ctx context.Context, cc domain.CountryCode) (*doma
 	return retrievedCountry, nil
 }
 
-// Save(ctx context.Context, country *domain.Country) (*domain.Country, error)
-// GetByID(ctx context.Context, cc domain.CountryCode) (*domain.Country, error) // ID is the Country's ISO code
-// CountAll(ctx context.Context) (uint, error)
-// GetRandom(ctx context.Context) (*domain.Country, error)
+// CountAll returns the number of entries in the Country table
+func (r *CountryRepo) CountAll(ctx context.Context) (int, error) {
+	countAllCountriesQuery, err := GetQuery("CountAllCountries")
+	if err != nil {
+		return 0, fmt.Errorf("CountAllCountries query retrieval: %w", err)
+	}
+
+	var count int
+	err = r.db.GetContext(ctx, &count, countAllCountriesQuery)
+
+	if err != nil {
+		return 0, fmt.Errorf("%w: counting all countries: %v", dbcommon.ErrSQLxQueryFailed, err)
+	}
+
+	return count, nil
+}
+
+// GetRandom returns a random Country from DB
+func (r *CountryRepo) GetRandom(ctx context.Context) (*domain.Country, error) {
+	getRandomCountryQuery, err := GetQuery("GetRandomCountry")
+	if err != nil {
+		return nil, fmt.Errorf("GetRandomCountry query retrieval: %w", err)
+	}
+
+	var cModel CountryModel // not a pointer
+	err = r.db.GetContext(ctx, &cModel, getRandomCountryQuery)
+	if err != nil {
+		return nil, fmt.Errorf("%w: getting random country: %v", dbcommon.ErrSQLxQueryFailed, err)
+	}
+
+	currenciesQuery, err := GetQuery("GetCurrenciesForCountry")
+	if err != nil {
+		return nil, fmt.Errorf("GetCurrenciesForCountry query retrieval failed: %w", err)
+	}
+
+	ccStr := cModel.Code.String()
+	var cModels []CurrencyModel
+	// SelectContext needs a pointer to a slice...
+	err = r.db.SelectContext(ctx, &cModels, currenciesQuery, ccStr)
+
+	if err != nil {
+		return nil, fmt.Errorf("%w: fetching currencies for country '%s': %v", dbcommon.ErrSQLxQueryFailed, ccStr, err)
+	}
+
+	// create the domain Country object
+	result, err := cModel.toDomainCountry(cModels)
+	if err != nil {
+		return nil, fmt.Errorf("%w for country %s: %v", dbcommon.ErrConvertToCountry, ccStr, err)
+	}
+
+	return result, nil
+}

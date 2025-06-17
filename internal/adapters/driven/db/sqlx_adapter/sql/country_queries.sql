@@ -18,7 +18,7 @@ SELECT currency_code FROM country_currency WHERE country_code = ?;
 -- Return the count of all existing countries
 SELECT COUNT(*) FROM country;
 
--- name GetRandomCoutry
+-- name GetRandomCountry
 -- Returns one country at random
 SELECT code, name, wikidataid FROM country ORDER BY RANDOM() LIMIT 1;
 
@@ -34,4 +34,4 @@ ON CONFLICT (country_code, currency_code) DO NOTHING;
 
 -- name DeleteCountryCurrencyJoins
 -- Deletes rows representing all currencies associated with a Country
-DELETE FROM country_currencies WHERE country_code = ?;
+DELETE FROM country_currencies WHERE country_code = :country_code;
