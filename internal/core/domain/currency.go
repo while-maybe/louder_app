@@ -21,3 +21,7 @@ func (c *Currency) Code() CurrencyCode {
 func (c *Currency) Name() string {
 	return c.name
 }
+
+func (cc CurrencyCode) String() string {
+	return string(cc)
+}

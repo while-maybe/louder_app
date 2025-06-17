@@ -17,7 +17,7 @@ type CurrencyRepo struct {
 	db *sqlx.DB
 }
 
-// ensure SQLxCurrencyRepo implements the Port (safety check)
+// ensure CurrencyRepo implements the Port (safety check)
 var _ currencycore.Repository = (*CurrencyRepo)(nil)
 
 // return an interface here, not a instance of CurrencyRepo
@@ -80,7 +80,7 @@ func (r *CurrencyRepo) GetByID(ctx context.Context, cc domain.CurrencyCode) (*do
 			return nil, fmt.Errorf("%w for currency code %s: %v", dbcommon.ErrSQLxNotFound, givenCode, err)
 		}
 		// query fails
-		return nil, fmt.Errorf("%w: %w", dbcommon.ErrSQLxQueryFailed, err)
+		return nil, fmt.Errorf("%w: %v", dbcommon.ErrSQLxQueryFailed, err)
 	}
 
 	retrievedCurrency, err := sqlxModel.toDomainCurrency()

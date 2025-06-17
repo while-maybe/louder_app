@@ -19,11 +19,18 @@ var (
 // common db errors
 var (
 	ErrSQLxSavedButNotInDB = errors.New("error SQLx entity saved but could not get from DB")
+	ErrDomainCreation      = errors.New("error cannot create domain entity")
 )
 
 // errors for Country
 var (
-	ErrConvertCountry = errors.New("error converting SQLx/Bun data to a country")
+	ErrConvertCountry    = errors.New("error converting SQLx/Bun data to a country")
+	ErrConvertNilCountry = errors.New("error converting nil country to DB model")
+	ErrSQLxSaveCountry   = errors.New("error could not save country to DB model")
+
+	ErrSQLxSaveCountryCurrency = errors.New("error could not save country/currency pair to DB model")
+	ErrNoCountryCode           = errors.New("error currency code must be provided")
+	ErrConvertToCountry        = errors.New("error converting DB data to country model")
 )
 
 // errors for Currency

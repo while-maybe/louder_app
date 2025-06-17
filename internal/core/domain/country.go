@@ -1,6 +1,9 @@
 package domain
 
-import "strings"
+import (
+	"fmt"
+	"strings"
+)
 
 type CountryCode string
 
@@ -9,18 +12,34 @@ type WikiCode string
 type Country struct {
 	code       CountryCode
 	name       string
-	currencies []CurrencyCode
+	currencies []Currency
 	wikidataid WikiCode
 }
 
 // NewCountry creates a Country object
-func NewCountry(code CountryCode, name string, curr []CurrencyCode, wikidataid WikiCode) *Country {
+func NewCountry(code CountryCode, name string, currs []Currency, wikidataid WikiCode) (*Country, error) {
+	if code.String() == "" {
+		return nil, fmt.Errorf("error country code cannot be empty")
+	}
+
+	if name == "" {
+		return nil, fmt.Errorf("error country name cannot be empty")
+	}
+
+	var currenciesCopy []Currency
+	if currs != nil {
+		currenciesCopy = make([]Currency, 0, len(currs))
+		copy(currenciesCopy, currs)
+	} else {
+		currenciesCopy = []Currency{}
+	}
+
 	return &Country{
 		code:       code,
 		name:       name,
-		currencies: curr,
+		currencies: currenciesCopy,
 		wikidataid: wikidataid,
-	}
+	}, nil
 }
 
 // WikiId returns a string with the wikidataid value
@@ -38,7 +57,12 @@ func (c Country) Code() CountryCode {
 	return c.code
 }
 
-// Currency returns a slice of Currency codes used in the Country
-func (c Country) Currencies() []CurrencyCode {
+// Currencies returns a slice of Currencies used in the Country
+func (c Country) Currencies() []Currency {
 	return c.currencies
+}
+
+// String returns the string contained in a CountryCode
+func (cc CountryCode) String() string {
+	return string(cc)
 }
