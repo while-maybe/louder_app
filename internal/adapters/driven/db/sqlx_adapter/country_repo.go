@@ -85,12 +85,26 @@ func (r *CountryRepo) Save(ctx context.Context, country *domain.Country) (*domai
 
 	if len(country.Currencies()) > 0 {
 
+		saveCurrencyQuery, err := GetQuery("SaveCurrency")
+		if err != nil {
+			return nil, fmt.Errorf("SaveCurrency query retrieval failed: %w", err)
+		}
+
 		saveCountryCurrencyPairQuery, err := GetQuery("SaveCountryCurrencyPair")
 		if err != nil {
 			return nil, fmt.Errorf("SaveCountryCurrencyPair query retrieval failed: %w", err)
 		}
 
 		for _, c := range country.Currencies() {
+			currencyRow := toModelCurrency(&c)
+
+			_, err := tx.NamedExecContext(ctx, saveCurrencyQuery, currencyRow)
+
+			if err != nil {
+				err = fmt.Errorf("%w for currency %s: %v", dbcommon.ErrSaveCurrency, c.Code().String(), err)
+				return nil, err
+			}
+
 			row := struct {
 				CountryCode  domain.CountryCode  `db:"country_code"`
 				CurrencyCode domain.CurrencyCode `db:"currency_code"`

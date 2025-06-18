@@ -43,7 +43,7 @@ var (
 var (
 	ErrConvertCurrency    = errors.New("error converting SQLx/Bun data to a currency")
 	ErrConvertNilCurrency = errors.New("error converting nil currency to DB model")
-	ErrSQLxSaveCurrency   = errors.New("error could not save currency to DB model")
+	ErrSaveCurrency       = errors.New("error could not save currency to DB model")
 	ErrNoCurrencyCode     = errors.New("error currency code must be provided")
 	ErrSQLxNotFound       = errors.New("error SQLx value not in DB")
 	ErrConvertToCurrency  = errors.New("error converting DB data to currency model")

@@ -26,7 +26,6 @@ func NewCurrencyRepo(sqldb *sql.DB) (currencycore.Repository, error) {
 	return &CurrencyRepo{db: db}, nil
 }
 
-// Save places
 func (r *CurrencyRepo) Save(ctx context.Context, currency *domain.Currency) (*domain.Currency, error) {
 	// convert from domain model to sqlx model
 	sqlxModel := toModelCurrency(currency)
@@ -44,7 +43,7 @@ func (r *CurrencyRepo) Save(ctx context.Context, currency *domain.Currency) (*do
 	// run the query and get the result (and check for errors)
 	_, err = r.db.NamedExecContext(ctx, query, sqlxModel)
 	if err != nil {
-		return nil, fmt.Errorf("%w for currency code %s: %s: %v", dbcommon.ErrSQLxSaveCurrency, currency.Code(), currency.Name(), err)
+		return nil, fmt.Errorf("%w for currency code %s: %s: %v", dbcommon.ErrSaveCurrency, currency.Code(), currency.Name(), err)
 	}
 
 	// checking for rows affected == 0 might not be great here as the query has a DO UPDATE SET, so if an upsert occurs, rowsaffected would have returned 0 and that is not an erorr
