@@ -7,7 +7,102 @@ import (
 	"log"
 	"louder/internal/adapters/driven/db/dbcommon"
 	"louder/internal/core/domain"
+	"net/url"
+	"strconv"
 )
+
+type paginator struct {
+	proc       *processor
+	endpoint   string
+	offset     int
+	limit      int
+	totalCount int
+	hasNext    bool
+}
+
+func NewPaginator(proc *processor, endpoint string, limitPerPage int) *paginator {
+	return &paginator{
+		proc:       proc,
+		endpoint:   endpoint,
+		offset:     0,
+		limit:      limitPerPage,
+		totalCount: -1,
+		hasNext:    true,
+	}
+}
+
+func (p *paginator) HasNext() bool {
+	return p.hasNext
+}
+
+func (p *paginator) TotalCount() int {
+	return p.totalCount
+}
+
+func (p *paginator) NextPage(ctx context.Context) ([]CountryDTO, error) {
+	if !p.HasNext() {
+		return nil, nil // no pages, no errors
+	}
+
+	params := url.Values{}
+	params.Set("limit", strconv.Itoa(p.limit))
+	params.Add("offset", strconv.Itoa(p.offset))
+	log.Printf("Paginator: Requesting next page - endpoint: %s, offset: %d, limit: %d", p.endpoint, p.offset, p.limit)
+
+	resultChan := p.proc.execute(ctx, p.endpoint, params)
+
+	var apiResponse *GeoDBAPIResponse
+	var pageErr error
+
+	select {
+	case result := <-resultChan:
+		switch {
+		case result.err != nil:
+			pageErr = fmt.Errorf("paginator: API call failed for offset %d (endpoint %s): %w", p.offset, p.endpoint, result.err)
+			p.hasNext = false
+
+		default:
+			apiResponse = result.response
+
+			// if p.totalCount is -1, we didn't know this value before
+			if p.totalCount == -1 && apiResponse != nil {
+				p.totalCount = apiResponse.Metadata.Count
+			}
+			log.Printf("Paginator: Discovered total API count for %s: %d", p.endpoint, p.totalCount)
+
+			switch {
+			// an empty response or no countries received means there are no next pages
+			case apiResponse == nil || len(apiResponse.Countries) == 0:
+				p.hasNext = false
+
+			default:
+				// increase the offset by the right amount
+				p.offset += len(apiResponse.Countries)
+				// if this the first time we get and we've got the total count already (1 page only?)
+				if p.totalCount != -1 && p.offset >= p.totalCount {
+					p.hasNext = false
+				}
+			}
+		}
+
+	// ctx cancelled?
+	case <-ctx.Done():
+		pageErr = fmt.Errorf("paginator: context cancelled for offset %d (endpoint %s): %w", p.offset, p.endpoint, ctx.Err())
+		p.hasNext = false
+	}
+
+	// if we could not get the page
+	if pageErr != nil {
+		return nil, pageErr
+	}
+
+	// page was empty?
+	if apiResponse == nil {
+		return []CountryDTO{}, nil
+	}
+
+	return apiResponse.Countries, nil
+}
 
 // mapDTOToDomainCountry converts an API DTO (CountryDTO) to a domain.Country object
 func (p *Provider) mapDTOToDomainCountry(ctx context.Context, dto CountryDTO) (*domain.Country, error) {

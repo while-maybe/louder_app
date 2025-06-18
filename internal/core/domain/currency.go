@@ -34,7 +34,7 @@ func (cc CurrencyCode) String() string {
 
 func NewCurrencyCode(cc string) (CurrencyCode, error) {
 	if cc == "" || len(cc) != 3 {
-		return "", errors.New("error creating currency code: must be 3 character long")
+		return "", errors.New("error creating currency code: must be 3 characters long")
 	}
 	return CurrencyCode(strings.ToUpper(cc)), nil
 }
