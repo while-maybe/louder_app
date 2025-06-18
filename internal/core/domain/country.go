@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 )
@@ -65,4 +66,18 @@ func (c Country) Currencies() []Currency {
 // String returns the string contained in a CountryCode
 func (cc CountryCode) String() string {
 	return string(cc)
+}
+
+func NewCountryCode(cc string) (CountryCode, error) {
+	if cc == "" || len(cc) != 3 {
+		return "", errors.New("error creating country code: must be a 3 letter")
+	}
+	return CountryCode(strings.ToUpper(cc)), nil
+}
+
+func NewWikiCode(wc string) (WikiCode, error) {
+	if wc == "" {
+		return "", errors.New("error createing wikiid: must not be empty string")
+	}
+	return WikiCode(strings.ToUpper(wc)), nil
 }
