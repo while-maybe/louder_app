@@ -21,7 +21,7 @@ type httpClient struct {
 
 // baseURL: "https://wft-geo-db.p.rapidapi.com",
 
-func NewHTTPClent(baseURL, apiKey string) *httpClient {
+func NewHTTPClient(baseURL, apiKey string) *httpClient {
 	return &httpClient{
 		baseURL:          baseURL,
 		apiKeyHeaderName: "x-rapidapi-key",
@@ -93,6 +93,7 @@ func (c *httpClient) queryAPI(ctx context.Context, endpoint string, params url.V
 		return nil, fmt.Errorf("failed to read response body: %w", err)
 	}
 
+	// unmarshall the parsed json data into GeoDBAPIresponse struct
 	var apiResp GeoDBAPIResponse
 	if err := json.Unmarshal(bodyBytes, &apiResp); err != nil {
 		log.Printf("HTTP Client: Failed to unmarshal JSON. Body was: %s", string(bodyBytes))

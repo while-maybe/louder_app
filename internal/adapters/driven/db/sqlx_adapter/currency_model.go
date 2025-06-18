@@ -1,6 +1,7 @@
 package sqlxadapter
 
 import (
+	"fmt"
 	dbcommon "louder/internal/adapters/driven/db/dbcommon"
 	"louder/internal/core/domain"
 )
@@ -28,5 +29,10 @@ func (m *CurrencyModel) toDomainCurrency() (*domain.Currency, error) {
 		return nil, dbcommon.ErrConvertCurrency
 	}
 
-	return domain.NewCurrency(m.Code, m.Name), nil
+	newCurrency, err := domain.NewCurrency(m.Code, m.Name)
+	if err != nil {
+		return nil, fmt.Errorf("cannot create this domain currency: %w", err)
+	}
+
+	return newCurrency, nil
 }
