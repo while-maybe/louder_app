@@ -51,9 +51,12 @@ func initQueries() {
 
 // parseContentIntoQueries parses a single SQL file's content and populates the queries map.
 func parseContentIntoQueries(content string) {
-	statements := strings.Split(content, "--name:")
+	// statements := strings.Split(content, "--name:")
+	// Go 1.24 implements SplitSeq which does not create a slice for the results, instead, returns an interator which doesn't allocate.
 
-	for _, s := range statements {
+	statements := strings.SplitSeq(content, "--name")
+
+	for s := range statements {
 		s = strings.TrimSpace(s)
 
 		if s == "" {
