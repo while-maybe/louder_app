@@ -17,7 +17,7 @@ clean:
 	@go clean
 
 test:
-	@go test ./.. -vet=off
+	@go test ./... -vet=off
 
 # --- Database Migrations ---
 DB_URL := sqlite3://louder.db
