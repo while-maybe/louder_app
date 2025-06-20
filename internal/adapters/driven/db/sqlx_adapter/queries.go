@@ -54,7 +54,7 @@ func parseContentIntoQueries(content string) {
 	// statements := strings.Split(content, "--name:")
 	// Go 1.24 implements SplitSeq which does not create a slice for the results, instead, returns an interator which doesn't allocate.
 
-	statements := strings.SplitSeq(content, "--name")
+	statements := strings.SplitSeq(content, "-- name:")
 
 	for s := range statements {
 		s = strings.TrimSpace(s)
@@ -62,7 +62,6 @@ func parseContentIntoQueries(content string) {
 		if s == "" {
 			continue
 		}
-
 		parts := strings.SplitN(s, "\n", 2)
 		if len(parts) < 2 {
 			// Log or handle malformed query name line
